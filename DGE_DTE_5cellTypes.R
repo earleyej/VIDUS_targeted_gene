@@ -4,7 +4,9 @@
 #BiocManager::install("DESeq2")
 library(DESeq2)
 
+
 #docker run --rm --memory=6g --cpus=2 --mount type=bind,src=/shared/vidus,dst=/shared/vidus -i -t rticode/deseq2:1.26.0_08a6163
+#docker run -i -t rtibiocloud/deseq2:1.22.2
 
 
 # load sample phenotype and technical data
