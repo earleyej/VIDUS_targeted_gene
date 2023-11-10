@@ -4,29 +4,27 @@
 #BiocManager::install("DESeq2")
 library(DESeq2)
 
-
-#docker run --rm --memory=6g --cpus=2 --mount type=bind,src=/shared/vidus,dst=/shared/vidus -i -t rticode/deseq2:1.26.0_08a6163
-#docker run -i -t rtibiocloud/deseq2:1.22.2
-
+#docker run -v /rti-01/eearley/vidus:/vidus/ -i -t rtibiocloud/deseq2:1.22.2
+setwd("vidus")
 
 # load sample phenotype and technical data
 options(stringsAsFactors = F)
-bio.vars <- read.delim("/shared/vidus/vidus_hiv_acquisition_phenotype_variables.txt",
+bio.vars <- read.delim("./vidus_hiv_acquisition_phenotype_variables.txt",
     header = T, sep = "\t")
-art.vars <- read.csv("/shared/vidus/vidus_art_phenotype_data.csv", 
+art.vars <- read.csv("./vidus_art_phenotype_data.csv", 
     header = T)
-tech.vars <- read.delim("/shared/vidus/vidus_rna_seq_technical_variables.txt", 
+tech.vars <- read.delim("./vidus_rna_seq_technical_variables.txt", 
     header = T, sep = "\t")
-geno.pcs <- read.table("/shared/vidus/vidus_hiv_acquisition_all_samples_top10_genotype_pcs.txt",
+geno.pcs <- read.table("./vidus_hiv_acquisition_all_samples_top10_genotype_pcs.txt",
     header = T)
 #cell type proportions using full LM22 dataset (22 cell types)
-ctp<-read.table("/shared/vidus/hiv_status_candidate_gene_dge_cell_type_proportions_lm22.txt",
+ctp<-read.table("./hiv_status_candidate_gene_dge_cell_type_proportions_lm22.txt",
     header = T,sep = "\t")
 #cell type proportions using a subset of LM22 (just 10 cell types)
 #ctp.subset<-read.table("/shared/vidus/hiv_status_candidate_gene_dge_cell_type_proportions_lm22_subset.txt",header=T,sep="\t")
 #art.vars<-read.csv("/shared/vidus/VIDUS_concurrent_ART_v2.csv",header=T)
-drug.vars<-read.csv("/shared/vidus/VIDUS_RNAseq_drug_use_l6m.csv",header=T)
-samples<-read.table("/shared/vidus/vidus_sample_list.txt",header=F)
+drug.vars<-read.csv("./VIDUS_RNAseq_drug_use_l6m.csv",header=T)
+samples<-read.table("./vidus_sample_list.txt",header=F)
 
 
 
@@ -145,7 +143,7 @@ cat("\nPhenotype table dimensions: ", dim(master.pheno), "\n")
 
 # Load GTF file and make gene coordinate map
 options(stringsAsFactors = F)
-if(! file.exists("/shared/vidus/gencode.v28.annotation.gtf.gz")){
+if(! file.exists("./gencode.v28.annotation.gtf.gz")){
     download.file("ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/gencode.v28.annotation.gtf.gz", 
         destfile = "/shared/vidus/gencode.v28.annotation.gtf.gz")
 }
