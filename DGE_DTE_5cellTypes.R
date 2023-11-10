@@ -145,15 +145,16 @@ cat("\nPhenotype table dimensions: ", dim(master.pheno), "\n")
 options(stringsAsFactors = F)
 if(! file.exists("./gencode.v28.annotation.gtf.gz")){
     download.file("ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/gencode.v28.annotation.gtf.gz", 
-        destfile = "/shared/vidus/gencode.v28.annotation.gtf.gz")
+        destfile = "./gencode.v28.annotation.gtf.gz")
 }
-gtf <- read.delim("/shared/vidus/gencode.v28.annotation.gtf.gz", 
+gtf <- read.delim("./gencode.v28.annotation.gtf.gz", 
     comment.char = "#", sep = "\t", header = F)
 
 # Load or create ID to gene name map
-if(file.exists("/shared/vidus/gencode_v28_gene_id_name_map.rds")){
-    id.name.map = readRDS("/shared/vidus/gencode_v28_gene_id_name_map.rds")
+if(file.exists("./gencode_v28_gene_id_name_map.rds")){
+    id.name.map = readRDS("./gencode_v28_gene_id_name_map.rds")
 }else{
+    print("Creating .rds gene map file")
     anno.data <- strsplit(gtf[grep(gtf[,9], pattern = "gene_name"),9], split = ";")
     id.name.map <- lapply(1:length(anno.data), function(x){
         id <- tail(strsplit(anno.data[[x]][grep(anno.data[[x]], pattern = "gene_id")], split = " ")[[1]], n = 1)
@@ -162,7 +163,7 @@ if(file.exists("/shared/vidus/gencode_v28_gene_id_name_map.rds")){
     })
     id.name.map <- do.call(rbind, unique(id.name.map))
     colnames(id.name.map) <- c("GENEID", "GENENAME")
-    saveRDS(id.name.map, "/shared/vidus/gencode_v28_gene_id_name_map.rds")
+    saveRDS(id.name.map, "./gencode_v28_gene_id_name_map.rds")
 }
 
 
@@ -172,7 +173,7 @@ if(file.exists("/shared/vidus/gencode_v28_gene_id_name_map.rds")){
 ##########################
 
 # Gene Expression data
-vidus.gene.data <- readRDS("/shared/vidus/vidus_salmon_gene_data_gencode28.rds")
+vidus.gene.data <- readRDS("./vidus_salmon_gene_data_gencode28.rds")
 vidus.gene.data$abundance <- vidus.gene.data$abundance[,master.pheno$iid]
 vidus.gene.data$counts <- vidus.gene.data$counts[,master.pheno$iid]
 vidus.gene.data$length <- vidus.gene.data$length[,master.pheno$iid]
