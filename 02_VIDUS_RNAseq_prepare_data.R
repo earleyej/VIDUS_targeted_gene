@@ -191,16 +191,13 @@ dim(vidus.gene.dds) #57964 annotations
 ####################################
 # CREATE STRATIFIED COHORT SUBSETS #
 ####################################
-
-
-# also create a viral load only set for HIV+
-pheno.coc<-master.pheno[master.pheno$hiv == 1,]
+pheno.coc<-master.pheno[master.pheno$anycoc_l6m == 1,]
+dim(pheno.coc)
 vidus.coc.gene.data = vidus.gene.data
 vidus.coc.gene.data$abundance = vidus.coc.gene.data$abundance[,pheno.coc$iid]
 vidus.coc.gene.data$counts = vidus.coc.gene.data$counts[,pheno.coc$iid]
 vidus.coc.gene.data$length = vidus.coc.gene.data$length[,pheno.coc$iid]
 lapply(vidus.coc.gene.data, dim)
-
 model.vars <- c("female","ageatint","RNA_Quality_Score",
     "PC1","PC2","PC3","PC4","PC5")
 initial.model <- as.formula(paste0("~", paste0(model.vars, collapse = " + ")))
