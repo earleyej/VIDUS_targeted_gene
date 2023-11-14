@@ -8,7 +8,7 @@ library(DESeq2)
 setwd("vidus")
 
 
-load("./VIDUS_HIV_DGE_deseq2_dds_2023_11_13.RData")
+load("./VIDUS_HIV_DGE_deseq2_dds_2023_11_14.RData")
 
 
 
@@ -17,25 +17,32 @@ load("./VIDUS_HIV_DGE_deseq2_dds_2023_11_13.RData")
 #### Differential Gene Expression ####
 ######################################
 
-# DGE model - BASE + absolute.cell.proportions
+
 common.vars <- c('female', 'ageatint',
     "RNA_Quality_Score", 'PC1', 'PC2', 'PC3', 'PC4', 'PC5',
     "cd4Tcells","Bcells","granulocytes","Monocytes","T.cells.CD8")
 contrast.var <- "hiv"
 vidus.full.formula <- paste0("~", paste0(c(contrast.var, common.vars), collapse=" + "))
-design(filtered.vidus.gene.dds) <- as.formula(vidus.full.formula)
-design(filtered.vidus.gene.dds)
 
+# Cocaine only
+design(filtered.vidus.coc.gene.dds) <- as.formula(vidus.full.formula)
+design(filtered.vidus.coc.gene.dds)
 # perform the regression
-vidus.fit <- DESeq(filtered.vidus.gene.dds, test = "Wald",
+vidus.fit.coc <- DESeq(filtered.vidus.coc.gene.dds, test = "Wald",
         fitType = "parametric", sfType = "ratio", betaPrior = F,
         parallel = F)
+resultsNames(vidus.fit.coc)
+hiv.results.coc <- DESeq2::results(vidus.fit.coc, name = "hiv_1_vs_0", alpha = 0.05, cooksCutoff = Inf)
 
-# Access results
-resultsNames(vidus.fit)
-hiv.results <- DESeq2::results(vidus.fit, name = "hiv_1_vs_0", alpha = 0.05, cooksCutoff = Inf)
-
-
+# Non-cocaine only
+design(filtered.vidus.noncoc.gene.dds) <- as.formula(vidus.full.formula)
+design(filtered.vidus.noncoc.gene.dds)
+# perform the regression
+vidus.fit.noncoc <- DESeq(filtered.vidus.noncoc.gene.dds, test = "Wald",
+        fitType = "parametric", sfType = "ratio", betaPrior = F,
+        parallel = F)
+resultsNames(vidus.fit.noncoc)
+hiv.results.noncoc <- DESeq2::results(vidus.fit.noncoc, name = "hiv_1_vs_0", alpha = 0.05, cooksCutoff = Inf)
 
 ##########################
 #### apeGLM shrinkage ####
