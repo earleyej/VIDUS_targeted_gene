@@ -205,6 +205,23 @@ vidus.coc.gene.dds <- DESeqDataSetFromTximport(txi = vidus.coc.gene.data,
     design = initial.model, colData = pheno.coc)
 
 
+
+
+pheno.noncoc<-master.pheno[master.pheno$anycoc_l6m == 0,]
+dim(pheno.noncoc)
+vidus.noncoc.gene.data = vidus.gene.data
+vidus.noncoc.gene.data$abundance = vidus.noncoc.gene.data$abundance[,pheno.noncoc$iid]
+vidus.noncoc.gene.data$counts = vidus.noncoc.gene.data$counts[,pheno.noncoc$iid]
+vidus.noncoc.gene.data$length = vidus.noncoc.gene.data$length[,pheno.noncoc$iid]
+lapply(vidus.noncoc.gene.data, dim)
+model.vars <- c("female","ageatint","RNA_Quality_Score",
+    "PC1","PC2","PC3","PC4","PC5")
+initial.model <- as.formula(paste0("~", paste0(model.vars, collapse = " + ")))
+vidus.noncoc.gene.dds <- DESeqDataSetFromTximport(txi = vidus.noncoc.gene.data,
+    design = initial.model, colData = pheno.noncoc)
+
+
+
 ####################################
 # FILTER OUT LOWLY EXPRESSED GENES #
 ####################################
@@ -231,21 +248,28 @@ sample.cutoff.calc <- function(min.fraction){
     }
 }
 
-# HIV- vs. HIV+
 # Get approximate data set fraction for the smaller of cases and controls
+# cocaine
 min.fraction <- min(table(pheno.coc$hiv))/sum(table(pheno.coc$hiv, useNA = "always"))
 sample.threshold <- sample.cutoff.calc(min.fraction)
-
-# GENE
-filtered.vidus.gene.dds <- count.filter(vidus.gene.dds, count.cutoff = 10, 
+filtered.vidus.coc.gene.dds <- count.filter(vidus.coc.gene.dds, count.cutoff = 10, 
     sample.cutoff = sample.threshold, force.keep = c())
-# Filtered stats
-dim(filtered.vidus.gene.dds) 
-# estimating size factors
-filtered.vidus.gene.dds <- estimateSizeFactors(filtered.vidus.gene.dds)
+dim(filtered.vidus.coc.gene.dds) 
+filtered.vidus.coc.gene.dds <- estimateSizeFactors(filtered.vidus.coc.gene.dds)
+
+
+# noncocaine
+min.fraction <- min(table(pheno.noncoc$hiv))/sum(table(pheno.noncoc$hiv, useNA = "always"))
+sample.threshold <- sample.cutoff.calc(min.fraction)
+filtered.vidus.noncoc.gene.dds <- count.filter(vidus.noncoc.gene.dds, count.cutoff = 10, 
+    sample.cutoff = sample.threshold, force.keep = c())
+dim(filtered.vidus.noncoc.gene.dds) 
+filtered.vidus.noncoc.gene.dds <- estimateSizeFactors(filtered.vidus.noncoc.gene.dds)
+
+
 
 
 
 # save spot
-save.image("./VIDUS_HIV_DGE_deseq2_dds_2023_11_13.RData")
+save.image("./VIDUS_HIV_DGE_deseq2_cocaineStratified_2023_11_14.RData")
 #load("save.spot.RData")
