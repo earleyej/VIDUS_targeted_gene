@@ -48,3 +48,7 @@ hiv.shrunk.results <- lfcShrink(vidus.fit, res = hiv.shrunk.results,
 
 
 
+#### save final output ####
+save("hiv.shrunk.results",file="./hiv.shrunk.dge.cocaineONLY.results.rda")
+
+
