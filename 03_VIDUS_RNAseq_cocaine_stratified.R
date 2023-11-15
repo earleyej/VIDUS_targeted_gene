@@ -3,6 +3,11 @@
 #    install.packages("BiocManager")
 #BiocManager::install("DESeq2")
 library(DESeq2)
+library("BiocParallel")
+register(MulticoreParam(4))
+
+parallel=T
+
 
 #docker run -v /rti-01/eearley/vidus:/vidus/ -i -t rtibiocloud/deseq2:1.22.2
 setwd("vidus")
@@ -32,7 +37,7 @@ design(filtered.vidus.coc.gene.dds)
 # perform the regression
 vidus.fit.coc <- DESeq(filtered.vidus.coc.gene.dds, test = "Wald",
         fitType = "parametric", sfType = "ratio", betaPrior = F,
-        parallel = F)
+        parallel = parallel)
 resultsNames(vidus.fit.coc)
 hiv.results.coc <- DESeq2::results(vidus.fit.coc, name = "hiv_1_vs_0", alpha = 0.05, cooksCutoff = Inf)
 
@@ -43,7 +48,7 @@ design(filtered.vidus.noncoc.gene.dds)
 # perform the regression
 vidus.fit.noncoc <- DESeq(filtered.vidus.noncoc.gene.dds, test = "Wald",
         fitType = "parametric", sfType = "ratio", betaPrior = F,
-        parallel = F)
+        parallel = parallel)
 resultsNames(vidus.fit.noncoc)
 hiv.results.noncoc <- DESeq2::results(vidus.fit.noncoc, name = "hiv_1_vs_0", alpha = 0.05, cooksCutoff = Inf)
 
@@ -54,11 +59,11 @@ hiv.results.noncoc <- DESeq2::results(vidus.fit.noncoc, name = "hiv_1_vs_0", alp
 # this takes a long time, consider parallelizing
 print("apeGLM shrinkage for cocaine subset")
 hiv.shrunk.results <- lfcShrink(vidus.fit.coc, res = hiv.results.coc, 
-    coef = "hiv_1_vs_0", type = "apeglm", parallel = F)
+    coef = "hiv_1_vs_0", type = "apeglm", parallel = parallel)
 
 print("apeGLM shrinkage for non-cocaine subset")
-hiv.shrunk.results <- lfcShrink(vidus.fit.coc, res = hiv.results.coc, 
-    coef = "hiv_1_vs_0", type = "apeglm", parallel = F)
+hiv.shrunk.results <- lfcShrink(vidus.fit.noncoc, res = hiv.results.noncoc, 
+    coef = "hiv_1_vs_0", type = "apeglm", parallel = parallel)
 
 #### save final output ####
 save("hiv.shrunk.results",file="./hiv.shrunk.dge.cocaineONLY.results.rda")
