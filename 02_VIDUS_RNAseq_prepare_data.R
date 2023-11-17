@@ -4,7 +4,7 @@
 #BiocManager::install("DESeq2")
 library(DESeq2)
 
-#docker run -v /rti-01/eearley/vidus:/vidus/ -i -t rtibiocloud/deseq2:1.22.2
+#docker run -v /shared/eearley/vidus:/vidus/ -i -t rtibiocloud/deseq2:1.22.2
 setwd("vidus")
 
 # load sample phenotype and technical data
@@ -256,7 +256,7 @@ sample.cutoff.calc <- function(min.fraction){
 }
 
 # Get approximate data set fraction for the smaller of cases and controls
-min.fraction <- min(table(pheno$hiv))/sum(table(pheno$hiv, useNA = "always"))
+min.fraction <- min(table(master.pheno$hiv))/sum(table(master.pheno$hiv, useNA = "always"))
 sample.threshold <- sample.cutoff.calc(min.fraction)
 filtered.vidus.gene.dds <- count.filter(vidus.gene.dds, count.cutoff = 10, 
     sample.cutoff = sample.threshold, force.keep = c())
