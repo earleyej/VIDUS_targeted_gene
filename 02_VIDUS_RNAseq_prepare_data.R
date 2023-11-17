@@ -256,27 +256,35 @@ sample.cutoff.calc <- function(min.fraction){
 }
 
 # Get approximate data set fraction for the smaller of cases and controls
-# cocaine
-min.fraction <- min(table(pheno.coc$hiv))/sum(table(pheno.coc$hiv, useNA = "always"))
+min.fraction <- min(table(pheno$hiv))/sum(table(pheno$hiv, useNA = "always"))
 sample.threshold <- sample.cutoff.calc(min.fraction)
-filtered.vidus.coc.gene.dds <- count.filter(vidus.coc.gene.dds, count.cutoff = 10, 
+filtered.vidus.gene.dds <- count.filter(vidus.gene.dds, count.cutoff = 10, 
     sample.cutoff = sample.threshold, force.keep = c())
-dim(filtered.vidus.coc.gene.dds) 
-filtered.vidus.coc.gene.dds <- estimateSizeFactors(filtered.vidus.coc.gene.dds)
+dim(filtered.vidus.gene.dds) 
+filtered.vidus.gene.dds <- estimateSizeFactors(filtered.vidus.gene.dds)
+
+
+# cocaine
+#min.fraction <- min(table(pheno.coc$hiv))/sum(table(pheno.coc$hiv, useNA = "always"))
+#sample.threshold <- sample.cutoff.calc(min.fraction)
+#filtered.vidus.coc.gene.dds <- count.filter(vidus.coc.gene.dds, count.cutoff = 10, 
+#    sample.cutoff = sample.threshold, force.keep = c())
+#dim(filtered.vidus.coc.gene.dds) 
+#filtered.vidus.coc.gene.dds <- estimateSizeFactors(filtered.vidus.coc.gene.dds)
 
 
 # noncocaine
-min.fraction <- min(table(pheno.noncoc$hiv))/sum(table(pheno.noncoc$hiv, useNA = "always"))
-sample.threshold <- sample.cutoff.calc(min.fraction)
-filtered.vidus.noncoc.gene.dds <- count.filter(vidus.noncoc.gene.dds, count.cutoff = 10, 
-    sample.cutoff = sample.threshold, force.keep = c())
-dim(filtered.vidus.noncoc.gene.dds) 
-filtered.vidus.noncoc.gene.dds <- estimateSizeFactors(filtered.vidus.noncoc.gene.dds)
+#min.fraction <- min(table(pheno.noncoc$hiv))/sum(table(pheno.noncoc$hiv, useNA = "always"))
+#sample.threshold <- sample.cutoff.calc(min.fraction)
+#filtered.vidus.noncoc.gene.dds <- count.filter(vidus.noncoc.gene.dds, count.cutoff = 10, 
+#    sample.cutoff = sample.threshold, force.keep = c())
+#dim(filtered.vidus.noncoc.gene.dds) 
+#filtered.vidus.noncoc.gene.dds <- estimateSizeFactors(filtered.vidus.noncoc.gene.dds)
 
 
 
 
 
 # save spot
-save.image("./VIDUS_HIV_DGE_deseq2_cocaineStratified_2023_11_17.RData")
+save.image("./VIDUS_HIV_DGE_deseq2_2023_11_17.RData")
 #load("save.spot.RData")
