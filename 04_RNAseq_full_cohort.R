@@ -38,7 +38,7 @@ vidus.fit <- DESeq(filtered.vidus.gene.dds, test = "Wald",
         fitType = "parametric", sfType = "ratio", betaPrior = F,
         parallel = parallel)
 resultsNames(vidus.fit)
-hiv.resultsc <- DESeq2::results(vidus.fit, name = "hiv_1_vs_0", alpha = 0.05, cooksCutoff = Inf)
+hiv.results <- DESeq2::results(vidus.fit, name = "hiv_1_vs_0", alpha = 0.05, cooksCutoff = Inf)
 
 
 ##########################
