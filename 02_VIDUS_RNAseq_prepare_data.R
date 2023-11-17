@@ -124,18 +124,25 @@ colnames(master.pheno)[c(3,5,6,7)]<-c("female","hiv","marij_noninj_l6m","ageatin
 #11 = hiv+ cocaine+
 master.pheno$group <- factor(paste0(master.pheno$hiv,master.pheno$cocaine_l6m))
 
-
+# ageatint should not be an integer unless we expect expression to scale linearly over time
+# instead, M. Love suggests binning into 3-5 groups and factorizing
+master.pheno$age.bin = cut(master.pheno$ageatint,breaks=5)
 
 
 
 factor.vars <- c("hiv", "female", "std_ever","Container_Inventory_Code", 
     "Library.Plate.ID", "FlowCell.Lot.", "Seq.Date", 
     "Extraction.Kit.Lot.Number",
-    "benzo_noninj_l6m","heroin_l6m","prescript_l6m","opioid_l6m","cocaine_l6m","crack_l6m","anycoc_l6m","meth_l6m","stim_l6m","anydrug_l6m", "group", "ageatint")
+    "benzo_noninj_l6m","heroin_l6m","prescript_l6m","opioid_l6m","cocaine_l6m","crack_l6m","anycoc_l6m","meth_l6m","stim_l6m","anydrug_l6m", "group")
 for(factor.var in factor.vars){
     print(paste0("Converting ", factor.var, " to factor"))
     master.pheno[, factor.var] <- as.factor(master.pheno[, factor.var])
 }
+
+
+
+
+
 
 cat("\nPhenotype table dimensions: ", dim(master.pheno), "\n")
 
@@ -179,7 +186,7 @@ vidus.gene.data$counts <- vidus.gene.data$counts[,master.pheno$iid]
 vidus.gene.data$length <- vidus.gene.data$length[,master.pheno$iid]
 lapply(vidus.gene.data, dim)
 # Create initial model formula (will be updated later)
-model.vars <- c('hiv', 'female', 'ageatint', 'RNA_Quality_Score', 
+model.vars <- c('hiv', 'female', 'age.bin', 'RNA_Quality_Score', 
     'PC1', 'PC2', 'PC3', 'PC4', 'PC5')
 initial.model <- as.formula(paste0("~", paste0(model.vars, collapse = " + ")))
 # Create gene-level data objects
@@ -198,7 +205,7 @@ vidus.coc.gene.data$abundance = vidus.coc.gene.data$abundance[,pheno.coc$iid]
 vidus.coc.gene.data$counts = vidus.coc.gene.data$counts[,pheno.coc$iid]
 vidus.coc.gene.data$length = vidus.coc.gene.data$length[,pheno.coc$iid]
 lapply(vidus.coc.gene.data, dim)
-model.vars <- c("female","ageatint","RNA_Quality_Score",
+model.vars <- c("female","age.bin","RNA_Quality_Score",
     "PC1","PC2","PC3","PC4","PC5")
 initial.model <- as.formula(paste0("~", paste0(model.vars, collapse = " + ")))
 vidus.coc.gene.dds <- DESeqDataSetFromTximport(txi = vidus.coc.gene.data,
@@ -214,7 +221,7 @@ vidus.noncoc.gene.data$abundance = vidus.noncoc.gene.data$abundance[,pheno.nonco
 vidus.noncoc.gene.data$counts = vidus.noncoc.gene.data$counts[,pheno.noncoc$iid]
 vidus.noncoc.gene.data$length = vidus.noncoc.gene.data$length[,pheno.noncoc$iid]
 lapply(vidus.noncoc.gene.data, dim)
-model.vars <- c("female","ageatint","RNA_Quality_Score",
+model.vars <- c("female","age.bin","RNA_Quality_Score",
     "PC1","PC2","PC3","PC4","PC5")
 initial.model <- as.formula(paste0("~", paste0(model.vars, collapse = " + ")))
 vidus.noncoc.gene.dds <- DESeqDataSetFromTximport(txi = vidus.noncoc.gene.data,
@@ -271,5 +278,5 @@ filtered.vidus.noncoc.gene.dds <- estimateSizeFactors(filtered.vidus.noncoc.gene
 
 
 # save spot
-save.image("./VIDUS_HIV_DGE_deseq2_cocaineStratified_2023_11_14.RData")
+save.image("./VIDUS_HIV_DGE_deseq2_cocaineStratified_2023_11_17.RData")
 #load("save.spot.RData")
