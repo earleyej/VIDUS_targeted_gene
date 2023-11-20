@@ -9,7 +9,7 @@ register(MulticoreParam(4))
 parallel=T
 
 
-#docker run -v /rti-01/eearley/vidus:/vidus/ -i -t rtibiocloud/deseq2:1.22.2
+#docker run -v /shared/eearley/vidus:/vidus/ -i -t rtibiocloud/deseq2:1.22.2
 setwd("vidus")
 
 print("loading RData file")
@@ -39,7 +39,7 @@ vidus.fit <- DESeq(filtered.vidus.gene.dds, test = "Wald",
         parallel = parallel)
 resultsNames(vidus.fit)
 hiv.results <- DESeq2::results(vidus.fit, name = "hiv_1_vs_0", alpha = 0.05, cooksCutoff = Inf)
-
+save.image(file="model.fit.RData")
 
 ##########################
 #### apeGLM shrinkage ####
