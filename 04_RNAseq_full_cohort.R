@@ -13,7 +13,7 @@ parallel=T
 setwd("vidus")
 
 print("loading RData file")
-load("./VIDUS_HIV_DGE_deseq2_cocaineStratified_2023_11_17.RData")
+load("./VIDUS_HIV_DGE_deseq2_2023_11_17.RData")
 print("finished loading RData file")
 
 
@@ -39,7 +39,7 @@ vidus.fit <- DESeq(filtered.vidus.gene.dds, test = "Wald",
         parallel = parallel)
 resultsNames(vidus.fit)
 hiv.results <- DESeq2::results(vidus.fit, name = "hiv_1_vs_0", alpha = 0.05, cooksCutoff = Inf)
-save.image(file="model.fit.RData")
+save.image(file="./model.fit.RData")
 
 ##########################
 #### apeGLM shrinkage ####
