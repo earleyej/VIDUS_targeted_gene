@@ -21,8 +21,6 @@ print("finished loading RData file")
 ######################################
 #### Differential Gene Expression ####
 ######################################
-
-
 common.vars <- c('female', 'age.bin',
     "RNA_Quality_Score", 'PC1', 'PC2', 'PC3', 'PC4', 'PC5',
     "cd4Tcells","Bcells","granulocytes","Monocytes","T.cells.CD8")
@@ -30,16 +28,23 @@ contrast.var <- "hiv"
 vidus.full.formula <- paste0("~", paste0(c(contrast.var, common.vars), collapse=" + "))
 
 
+
+# VL only
 print("Model fitting")
-design(filtered.vidus.gene.dds) <- as.formula(vidus.full.formula)
-design(filtered.vidus.gene.dds)
-# perform the regression
-vidus.fit <- DESeq(filtered.vidus.gene.dds, test = "Wald",
-        fitType = "parametric", sfType = "ratio", betaPrior = F,
-        parallel = parallel)
+design(filtered.vidus.vl.gene.dds) <- as.formula(vidus.full.formula)
+design(filtered.vidus.vl.gene.dds)
+vidus.fit <- DESeq(filtered.vidus.vl.gene.dds, test = "Wald",
+         fitType = "parametric", sfType = "ratio", betaPrior = F,
+         parallel = parallel)
 resultsNames(vidus.fit)
-hiv.results <- DESeq2::results(vidus.fit, name = "hiv_1_vs_0", alpha = 0.05, cooksCutoff = Inf)
-save.image(file="./model.fit.RData")
+save(vidus.fit, file="./model.fit.VL.RData")
+
+
+# no VL only
+
+
+
+
 
 ##########################
 #### apeGLM shrinkage ####
@@ -47,9 +52,15 @@ save.image(file="./model.fit.RData")
 #apply apeGLM shrinkage to fold changes
 # this takes a long time, consider parallelizing
 print("apeGLM shrinkage")
-hiv.shrunk.results <- lfcShrink(vidus.fit, res = hiv.results, 
-    coef = "hiv_1_vs_0", type = "apeglm", parallel = parallel)
-
+hiv.results <- DESeq2::results(vidus.fit, 
+                               name = "hiv_1_vs_0", 
+                               alpha = 0.05, 
+                               cooksCutoff = Inf)
+hiv.shrunk.results <- lfcShrink(vidus.fit, 
+                                res = hiv.results, 
+                                coef = "hiv_1_vs_0", 
+                                type = "apeglm", 
+                                parallel = parallel)
 
 #### save final output ####
 save("hiv.shrunk.results",file="./hiv.shrunk.dge.results.2023_11_27.rda")
