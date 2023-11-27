@@ -33,14 +33,21 @@ vidus.full.formula <- paste0("~", paste0(c(contrast.var, common.vars), collapse=
 print("Model fitting")
 design(filtered.vidus.vl.gene.dds) <- as.formula(vidus.full.formula)
 design(filtered.vidus.vl.gene.dds)
-vidus.fit <- DESeq(filtered.vidus.vl.gene.dds, test = "Wald",
+vidus.fit.vl <- DESeq(filtered.vidus.vl.gene.dds, test = "Wald",
          fitType = "parametric", sfType = "ratio", betaPrior = F,
          parallel = parallel)
-resultsNames(vidus.fit)
-save(vidus.fit, file="./model.fit.VL.RData")
+resultsNames(vidus.fit.vl)
+save(vidus.fit.vl, file="./model.fit.VL.RData")
 
 
 # no VL only
+print("Model fitting")
+design(filtered.vidus.novl.gene.dds) <- as.formula(vidus.full.formula)
+vidus.fit.novl <- DESeq(filtered.vidus.novl.gene.dds, test = "Wald",
+         fitType = "parametric", sfType = "ratio", betaPrior = F,
+         parallel = parallel)
+resultsNames(vidus.fit.novl)
+save(vidus.fit.novl, file="./model.fit.noVL.RData")
 
 
 
@@ -52,15 +59,14 @@ save(vidus.fit, file="./model.fit.VL.RData")
 #apply apeGLM shrinkage to fold changes
 # this takes a long time, consider parallelizing
 print("apeGLM shrinkage")
-hiv.results <- DESeq2::results(vidus.fit, 
+hiv.results.vl <- DESeq2::results(vidus.fit.vl, 
                                name = "hiv_1_vs_0", 
                                alpha = 0.05, 
                                cooksCutoff = Inf)
-hiv.shrunk.results <- lfcShrink(vidus.fit, 
-                                res = hiv.results, 
+hiv.shrunk.results.vl <- lfcShrink(vidus.fit.vl, 
+                                res = hiv.results.vl, 
                                 coef = "hiv_1_vs_0", 
                                 type = "apeglm", 
                                 parallel = parallel)
-
-#### save final output ####
-save("hiv.shrunk.results",file="./hiv.shrunk.dge.results.2023_11_27.rda")
+# save final output
+save("hiv.shrunk.results.vl",file="./hiv.shrunk.dge.results.vl.2023_11_27.rda")
