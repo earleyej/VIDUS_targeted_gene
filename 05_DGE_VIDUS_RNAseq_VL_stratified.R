@@ -56,6 +56,8 @@ save(vidus.fit.novl, file="./model.fit.noVL.RData")
 ##########################
 #### apeGLM shrinkage ####
 ##########################
+
+# VL
 #apply apeGLM shrinkage to fold changes
 # this takes a long time, consider parallelizing
 print("apeGLM shrinkage")
@@ -70,3 +72,23 @@ hiv.shrunk.results.vl <- lfcShrink(vidus.fit.vl,
                                 parallel = parallel)
 # save final output
 save("hiv.shrunk.results.vl",file="./hiv.shrunk.dge.results.vl.2023_11_27.rda")
+
+
+
+
+# no VL
+print("apeGLM shrinkage")
+hiv.results.novl <- DESeq2::results(vidus.fit.novl, 
+                               name = "hiv_1_vs_0", 
+                               alpha = 0.05, 
+                               cooksCutoff = Inf)
+hiv.shrunk.results.novl <- lfcShrink(vidus.fit.novl, 
+                                res = hiv.results.novl, 
+                                coef = "hiv_1_vs_0", 
+                                type = "apeglm", 
+                                parallel = parallel)
+# save final output
+save("hiv.shrunk.results.novl",file="./hiv.shrunk.dge.results.novl.2023_11_27.rda")
+
+
+
