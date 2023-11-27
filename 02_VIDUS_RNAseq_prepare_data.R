@@ -195,9 +195,51 @@ vidus.gene.dds <- DESeqDataSetFromTximport(txi = vidus.gene.data,
 dim(vidus.gene.dds) #57964 annotations
 
 
+
+
 ####################################
 # CREATE STRATIFIED COHORT SUBSETS #
-####################################
+#################################### 
+
+# viral load cases
+pheno.vl = master.pheno[master.pheno$hiv == 0,]
+pheno.vl = rbind(pheno.vl, 
+                 master.pheno[master.pheno$hiv == 1 & master.pheno$viral_suppressed == 0,])
+dim(pheno.vl)
+vidus.vl.gene.data = vidus.gene.data
+vidus.vl.gene.data$abundance = vidus.vl.gene.data$abundance[,pheno.vl$iid]
+vidus.vl.gene.data$counts = vidus.vl.gene.data$counts[,pheno.vl$iid]
+vidus.vl.gene.data$length = vidus.vl.gene.data$length[,pheno.vl$iid]
+lapply(vidus.vl.gene.data, dim)
+model.vars <- c("female","age.bin","RNA_Quality_Score",
+    "PC1","PC2","PC3","PC4","PC5")
+initial.model <- as.formula(paste0("~", paste0(model.vars, collapse = " + ")))
+vidus.vl.gene.dds <- DESeqDataSetFromTximport(txi = vidus.vl.gene.data,
+    design = initial.model, colData = pheno.vl)
+
+
+# no viral load cases
+pheno.novl = master.pheno[master.pheno$hiv == 0,]
+pheno.novl = rbind(pheno.novl, 
+                 master.pheno[master.pheno$hiv == 1 & master.pheno$viral_suppressed == 1,])
+dim(pheno.novl)
+vidus.novl.gene.data = vidus.gene.data
+vidus.novl.gene.data$abundance = vidus.novl.gene.data$abundance[,pheno.novl$iid]
+vidus.novl.gene.data$counts = vidus.novl.gene.data$counts[,pheno.novl$iid]
+vidus.novl.gene.data$length = vidus.novl.gene.data$length[,pheno.novl$iid]
+lapply(vidus.novl.gene.data, dim)
+model.vars <- c("female","age.bin","RNA_Quality_Score",
+    "PC1","PC2","PC3","PC4","PC5")
+initial.model <- as.formula(paste0("~", paste0(model.vars, collapse = " + ")))
+vidus.novl.gene.dds <- DESeqDataSetFromTximport(txi = vidus.novl.gene.data,
+    design = initial.model, colData = pheno.novl)
+
+
+
+
+
+
+# cocaine only
 pheno.coc<-master.pheno[master.pheno$anycoc_l6m == 1,]
 dim(pheno.coc)
 vidus.coc.gene.data = vidus.gene.data
@@ -213,7 +255,7 @@ vidus.coc.gene.dds <- DESeqDataSetFromTximport(txi = vidus.coc.gene.data,
 
 
 
-
+# non-cocaine only
 pheno.noncoc<-master.pheno[master.pheno$anycoc_l6m == 0,]
 dim(pheno.noncoc)
 vidus.noncoc.gene.data = vidus.gene.data
@@ -262,6 +304,28 @@ filtered.vidus.gene.dds <- count.filter(vidus.gene.dds, count.cutoff = 10,
     sample.cutoff = sample.threshold, force.keep = c())
 dim(filtered.vidus.gene.dds) 
 filtered.vidus.gene.dds <- estimateSizeFactors(filtered.vidus.gene.dds)
+
+
+# VL
+min.fraction <- min(table(pheno.vl$hiv))/sum(table(pheno.vl$hiv, useNA = "always"))
+sample.threshold <- sample.cutoff.calc(min.fraction)
+filtered.vidus.vl.gene.dds <- count.filter(vidus.vl.gene.dds, count.cutoff = 10, 
+    sample.cutoff = sample.threshold, force.keep = c())
+dim(filtered.vidus.vl.gene.dds) 
+filtered.vidus.vl.gene.dds <- estimateSizeFactors(filtered.vidus.vl.gene.dds)
+
+
+# no VL
+min.fraction <- min(table(pheno.novl$hiv))/sum(table(pheno.novl$hiv, useNA = "always"))
+sample.threshold <- sample.cutoff.calc(min.fraction)
+filtered.vidus.novl.gene.dds <- count.filter(vidus.novl.gene.dds, count.cutoff = 10, 
+    sample.cutoff = sample.threshold, force.keep = c())
+dim(filtered.vidus.novl.gene.dds) 
+filtered.vidus.novl.gene.dds <- estimateSizeFactors(filtered.vidus.novl.gene.dds)
+
+
+
+
 
 
 # cocaine
