@@ -21,7 +21,7 @@ parallel=T
 setwd("vidus")
 
 print("loading RData file")
-load("./VIDUS_HIV_DGE_deseq2_2023_11_17.RData")
+load("./VIDUS_HIV_DTE_deseq2_2023_11_28.RData")
 print("finished loading RData file")
 
 
