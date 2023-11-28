@@ -10,6 +10,14 @@ parallel=T
 
 
 #docker run -v /shared/eearley/vidus:/vidus/ -i -t rtibiocloud/deseq2:1.22.2
+
+
+# INPUTS
+#filtered.vidus.gene.dds
+#
+
+
+
 setwd("vidus")
 
 print("loading RData file")
