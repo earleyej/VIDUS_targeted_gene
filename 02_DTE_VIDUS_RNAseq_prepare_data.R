@@ -124,6 +124,9 @@ colnames(master.pheno)[c(3,5,6,7)]<-c("female","hiv","marij_noninj_l6m","ageatin
 #11 = hiv+ cocaine+
 master.pheno$group <- factor(paste0(master.pheno$hiv,master.pheno$cocaine_l6m))
 
+# ageatint should not be an integer unless we expect expression to scale linearly over time
+# instead, M. Love suggests binning into 3-5 groups and factorizing
+master.pheno$age.bin = cut(master.pheno$ageatint,breaks=5)
 
 
 
@@ -179,7 +182,7 @@ vidus.tx.data$counts <- vidus.tx.data$counts[,master.pheno$iid]
 vidus.tx.data$length <- vidus.tx.data$length[,master.pheno$iid]
 lapply(vidus.tx.data, dim)
 # Create initial model formula (will be updated later)
-model.vars <- c('hiv', 'female', 'ageatint', 'RNA_Quality_Score',
+model.vars <- c('hiv', 'female', 'age.bin', 'RNA_Quality_Score',
     'PC1', 'PC2', 'PC3', 'PC4', 'PC5')
 initial.model <- as.formula(paste0("~", paste0(model.vars, collapse = " + ")))
 # create tx-level data objects
@@ -189,31 +192,72 @@ dim(vidus.tx.dds)
 
 
 # VL only
+pheno.vl = master.pheno[master.pheno$hiv == 0,]
+pheno.vl = rbind(pheno.vl, 
+                 master.pheno[master.pheno$hiv == 1 & master.pheno$viral_suppressed == 0,])
+dim(pheno.vl)
+vidus.vl.tx.data = vidus.tx.data
+vidus.vl.tx.data$abundance = vidus.vl.tx.data$abundance[,pheno.vl$iid]
+vidus.vl.tx.data$counts = vidus.vl.tx.data$counts[,pheno.vl$iid]
+vidus.vl.tx.data$length = vidus.vl.tx.data$length[,pheno.vl$iid]
+lapply(vidus.vl.tx.data, dim)
+model.vars <- c("female","age.bin","RNA_Quality_Score",
+    "PC1","PC2","PC3","PC4","PC5")
+initial.model <- as.formula(paste0("~", paste0(model.vars, collapse = " + ")))
+vidus.vl.tx.dds <- DESeqDataSetFromTximport(txi = vidus.vl.tx.data,
+    design = initial.model, colData = pheno.vl)
 
 
 # no VL only
-
+pheno.novl = master.pheno[master.pheno$hiv == 0,]
+pheno.novl = rbind(pheno.novl, 
+                 master.pheno[master.pheno$hiv == 1 & master.pheno$viral_suppressed == 1,])
+dim(pheno.novl)
+vidus.novl.tx.data = vidus.tx.data
+vidus.novl.tx.data$abundance = vidus.novl.tx.data$abundance[,pheno.novl$iid]
+vidus.novl.tx.data$counts = vidus.novl.tx.data$counts[,pheno.novl$iid]
+vidus.novl.tx.data$length = vidus.novl.tx.data$length[,pheno.novl$iid]
+lapply(vidus.novl.tx.data, dim)
+model.vars <- c("female","age.bin","RNA_Quality_Score",
+    "PC1","PC2","PC3","PC4","PC5")
+initial.model <- as.formula(paste0("~", paste0(model.vars, collapse = " + ")))
+vidus.novl.tx.dds <- DESeqDataSetFromTximport(txi = vidus.novl.tx.data,
+    design = initial.model, colData = pheno.novl)
 
 
 # cocaine only
+pheno.coc<-master.pheno[master.pheno$anycoc_l6m == 1,]
+dim(pheno.coc)
+vidus.coc.tx.data = vidus.tx.data
+vidus.coc.tx.data$abundance = vidus.coc.tx.data$abundance[,pheno.coc$iid]
+vidus.coc.tx.data$counts = vidus.coc.tx.data$counts[,pheno.coc$iid]
+vidus.coc.tx.data$length = vidus.coc.tx.data$length[,pheno.coc$iid]
+lapply(vidus.coc.tx.data, dim)
+model.vars <- c("female","age.bin","RNA_Quality_Score",
+    "PC1","PC2","PC3","PC4","PC5")
+initial.model <- as.formula(paste0("~", paste0(model.vars, collapse = " + ")))
+vidus.coc.tx.dds <- DESeqDataSetFromTximport(txi = vidus.coc.tx.data,
+    design = initial.model, colData = pheno.coc)
+
+
+
+
+
 
 
 # no cocaine only
-
-
-# also create a viral load only set for HIV+
-vl.pheno<-master.pheno[master.pheno$hiv == 1,]
-vidus.VL.gene.data <- readRDS("/shared/vidus/vidus_salmon_gene_data_gencode28.rds")
-vidus.VL.gene.data$abundance <- vidus.VL.gene.data$abundance[,vl.pheno$iid] 
-vidus.VL.gene.data$counts <- vidus.VL.gene.data$counts[,vl.pheno$iid]
-vidus.VL.gene.data$length <- vidus.VL.gene.data$length[,vl.pheno$iid]
-lapply(vidus.VL.gene.data,dim)
-model.vars <- c("female","ageatint","RNA_Quality_Score",
-    "PC1","PC2","PC3","PC4","PC5","viral_suppressed")
+pheno.noncoc<-master.pheno[master.pheno$anycoc_l6m == 0,]
+dim(pheno.noncoc)
+vidus.noncoc.tx.data = vidus.tx.data
+vidus.noncoc.tx.data$abundance = vidus.noncoc.tx.data$abundance[,pheno.noncoc$iid]
+vidus.noncoc.tx.data$counts = vidus.noncoc.tx.data$counts[,pheno.noncoc$iid]
+vidus.noncoc.tx.data$length = vidus.noncoc.tx.data$length[,pheno.noncoc$iid]
+lapply(vidus.noncoc.tx.data, dim)
+model.vars <- c("female","age.bin","RNA_Quality_Score",
+    "PC1","PC2","PC3","PC4","PC5")
 initial.model <- as.formula(paste0("~", paste0(model.vars, collapse = " + ")))
-vidus.VL.gene.dds <- DESeqDataSetFromTximport(txi = vidus.VL.gene.data,
-    design = initial.model, colData = vl.pheno)
-
+vidus.noncoc.tx.dds <- DESeqDataSetFromTximport(txi = vidus.noncoc.tx.data,
+    design = initial.model, colData = pheno.noncoc)
 
 
 ####################################
@@ -244,22 +288,10 @@ sample.cutoff.calc <- function(min.fraction){
     }
 }
 
-# HIV- vs. HIV+
+# Full cohort, N=588
 # Get approximate data set fraction for the smaller of cases and controls
 min.fraction <- min(table(master.pheno$hiv))/sum(table(master.pheno$hiv, useNA = "always"))
-#sample.threshold <- sample.cutoff.calc(min.fraction)
 sample.threshold <- sample.cutoff.calc(min.fraction)
-
-# GENE
-filtered.vidus.gene.dds <- count.filter(vidus.gene.dds, count.cutoff = 10, 
-    sample.cutoff = sample.threshold, force.keep = c())
-# Filtered stats
-dim(filtered.vidus.gene.dds) 
-# estimating size factors
-filtered.vidus.gene.dds <- estimateSizeFactors(filtered.vidus.gene.dds)
-
-
-# TRANSCRIPT
 filtered.vidus.tx.dds <- count.filter(vidus.tx.dds, count.cutoff = 10,
     sample.cutoff = sample.threshold, force.keep = c())
 dim(filtered.vidus.tx.dds) #
