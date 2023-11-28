@@ -172,25 +172,8 @@ if(file.exists("./gencode_v28_gene_id_name_map.rds")){
 # LOAD EXPRESSION DATA #
 ##########################
 
-# Gene Expression data
-vidus.gene.data <- readRDS("./vidus_salmon_gene_data_gencode28.rds")
-vidus.gene.data$abundance <- vidus.gene.data$abundance[,master.pheno$iid]
-vidus.gene.data$counts <- vidus.gene.data$counts[,master.pheno$iid]
-vidus.gene.data$length <- vidus.gene.data$length[,master.pheno$iid]
-lapply(vidus.gene.data, dim)
-# Create initial model formula (will be updated later)
-model.vars <- c('hiv', 'female', 'ageatint', 'RNA_Quality_Score', 
-    'PC1', 'PC2', 'PC3', 'PC4', 'PC5')
-initial.model <- as.formula(paste0("~", paste0(model.vars, collapse = " + ")))
-# Create gene-level data objects
-vidus.gene.dds <- DESeqDataSetFromTximport(txi = vidus.gene.data, 
-    design = initial.model, colData = master.pheno)
-dim(vidus.gene.dds) #57964 annotations
-
-
-
 # Transcript expression data
-vidus.tx.data<- readRDS("/shared/vidus/vidus_salmon_dte_tx_data_gencode28.rds")
+vidus.tx.data<- readRDS("./vidus_salmon_dte_tx_data_gencode28.rds")
 vidus.tx.data$abundance <- vidus.tx.data$abundance[,master.pheno$iid]
 vidus.tx.data$counts <- vidus.tx.data$counts[,master.pheno$iid]
 vidus.tx.data$length <- vidus.tx.data$length[,master.pheno$iid]
@@ -205,7 +188,17 @@ vidus.tx.dds <- DESeqDataSetFromTximport(txi = vidus.tx.data,
 dim(vidus.tx.dds)
 
 
+# VL only
 
+
+# no VL only
+
+
+
+# cocaine only
+
+
+# no cocaine only
 
 
 # also create a viral load only set for HIV+
