@@ -39,15 +39,15 @@ vidus.full.formula <- paste0("~", paste0(c(contrast.var, common.vars), collapse=
 
 
 print("Model fitting")
-design(filtered.vidus.gene.dds) <- as.formula(vidus.full.formula)
-design(filtered.vidus.gene.dds)
+design(filtered.vidus.tx.dds) <- as.formula(vidus.full.formula)
+design(filtered.vidus.tx.dds)
 # perform the regression
-vidus.fit <- DESeq(filtered.vidus.gene.dds, test = "Wald",
+vidus.fit <- DESeq(filtered.vidus.tx.dds, test = "Wald",
         fitType = "parametric", sfType = "ratio", betaPrior = F,
         parallel = parallel)
 resultsNames(vidus.fit)
 hiv.results <- DESeq2::results(vidus.fit, name = "hiv_1_vs_0", alpha = 0.05, cooksCutoff = Inf)
-save.image(file="./model.fit.RData")
+save.image(file="./model.fit.dte.RData")
 
 ##########################
 #### apeGLM shrinkage ####
@@ -60,4 +60,4 @@ hiv.shrunk.results <- lfcShrink(vidus.fit, res = hiv.results,
 
 
 #### save final output ####
-save("hiv.shrunk.results",file="./hiv.shrunk.dge.results.2023_11_27.rda")
+save("hiv.shrunk.results",file="./hiv.shrunk.dte.results.2023_11_28.rda")
