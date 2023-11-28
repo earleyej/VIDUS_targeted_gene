@@ -283,6 +283,10 @@ sample.cutoff.calc <- function(min.fraction){
     }
 }
 
+
+
+
+
 # Full cohort, N=588
 # Get approximate data set fraction for the smaller of cases and controls
 min.fraction <- min(table(master.pheno$hiv))/sum(table(master.pheno$hiv, useNA = "always"))
@@ -291,6 +295,7 @@ filtered.vidus.tx.dds <- count.filter(vidus.tx.dds, count.cutoff = 10,
     sample.cutoff = sample.threshold, force.keep = c())
 dim(filtered.vidus.tx.dds) #
 filtered.vidus.tx.dds <- estimateSizeFactors(filtered.vidus.tx.dds)
+save(filtered.vidus.tx.dds, file="VIDUS_HIV_DTE_deseq2_2023_11_28.RData")
 
 
 # VL only
@@ -300,7 +305,7 @@ filtered.vidus.vl.tx.dds <- count.filter(vidus.vl.tx.dds, count.cutoff = 10,
     sample.cutoff = sample.threshold, force.keep = c())
 dim(filtered.vidus.vl.tx.dds) 
 filtered.vidus.vl.tx.dds <- estimateSizeFactors(filtered.vidus.vl.tx.dds)
-
+save(filtered.vidus.vl.tx.dds, file="VIDUS_HIV_DTE_vl_deseq2_2023_11_28.RData")
 
 # no VL only
 min.fraction <- min(table(pheno.novl$hiv))/sum(table(pheno.novl$hiv, useNA = "always"))
@@ -309,374 +314,35 @@ filtered.vidus.novl.tx.dds <- count.filter(vidus.novl.tx.dds, count.cutoff = 10,
     sample.cutoff = sample.threshold, force.keep = c())
 dim(filtered.vidus.novl.tx.dds) 
 filtered.vidus.novl.tx.dds <- estimateSizeFactors(filtered.vidus.novl.tx.dds)
+save(filtered.vidus.novl.tx.dds, file="VIDUS_HIV_DTE_novl_deseq2_2023_11_28.RData")
+
 
 
 # cocaine only
-
+min.fraction <- min(table(pheno.coc$hiv))/sum(table(pheno.coc$hiv, useNA = "always"))
+sample.threshold <- sample.cutoff.calc(min.fraction)
+filtered.vidus.coc.tx.dds <- count.filter(vidus.coc.tx.dds, count.cutoff = 10, 
+    sample.cutoff = sample.threshold, force.keep = c())
+dim(filtered.vidus.coc.tx.dds) 
+filtered.vidus.coc.tx.dds <- estimateSizeFactors(filtered.vidus.coc.tx.dds)
+save(filtered.vidus.coc.tx.dds, file="VIDUS_HIV_DTE_coc_deseq2_2023_11_28.RData")
 
 
 
 
 # no cocaine only
+min.fraction <- min(table(pheno.noncoc$hiv))/sum(table(pheno.noncoc$hiv, useNA = "always"))
+sample.threshold <- sample.cutoff.calc(min.fraction)
+filtered.vidus.noncoc.tx.dds <- count.filter(vidus.noncoc.tx.dds, count.cutoff = 10, 
+    sample.cutoff = sample.threshold, force.keep = c())
+dim(filtered.vidus.noncoc.tx.dds) 
+filtered.vidus.noncoc.tx.dds <- estimateSizeFactors(filtered.vidus.noncoc.tx.dds)
+save(filtered.vidus.noncoc.tx.dds, file="VIDUS_HIV_DTE_noncoc_deseq2_2023_11_28.RData")
 
 
 
 
+#### save images for model fitting ####
+#save.image("VIDUS_HIV_DTE_deseq2_2023_11_28.RData")
 
 
-#save this
-save.image("save.spot.RData")
-
-
-
-
-#### DGE model - BASE ####
-common.vars <- c('female', 'ageatint',
-    "RNA_Quality_Score", 'PC1', 'PC2', 'PC3', 'PC4', 'PC5')
-contrast.var <- "hiv"
-
-vidus.full.formula <- paste0("~", paste0(c(contrast.var, common.vars), collapse=" + "))
-design(filtered.vidus.gene.dds) <- as.formula(vidus.full.formula)
-design(filtered.vidus.gene.dds)
-# save this object. It will be the input for the deseq2.R differential expression analysis
-save(list = c("filtered.vidus.gene.dds"),
-     file = "/shared/vidus/vidus_hiv_acquisition_dge_deseq2_input.rda")
-
-
-#### DGE model - sourcing cell type proportions from absolute values ####
-common.vars <- c('female', 'ageatint',
-    "RNA_Quality_Score", 'PC1', 'PC2', 'PC3', 'PC4', 'PC5',
-    "cd4Tcells","Bcells","granulocytes","Monocytes","T.cells.CD8")
-contrast.var <- "hiv"
-vidus.full.formula <- paste0("~", paste0(c(contrast.var, common.vars), collapse=" + "))
-design(filtered.vidus.gene.dds) <- as.formula(vidus.full.formula)
-design(filtered.vidus.gene.dds)
-save("filtered.vidus.gene.dds",file="/shared/vidus/vidus_hiv_acquisition_dge_deseq2_5cell-typeAbs_input.rda")
-
-
-#### model - sourcing cell type proportions from relative values ####
-#common.vars <- c('female', 'ageatint',
-#    "RNA_Quality_Score", 'PC1', 'PC2', 'PC3', 'PC4', 'PC5',
-#    "cd4Tcells.rel","Bcells.rel","granulocytes.rel","Monocytes.rel","T.cells.CD8.rel")
-#contrast.var <- "hiv"
-#vidus.full.formula <- paste0("~", paste0(c(contrast.var, common.vars), collapse=" + "))
-#design(filtered.vidus.gene.dds) <- as.formula(vidus.full.formula)
-#design(filtered.vidus.gene.dds)
-#save("filtered.vidus.gene.dds",file="/shared/vidus/vidus_hiv_acquisition_dge_deseq2_5cell-typeRel_input.rda")
-
-
-
-#### DGE cocaine x hiv ####
-common.vars <- c('female', 'ageatint',
-    "RNA_Quality_Score", 'PC1', 'PC2', 'PC3', 'PC4', 'PC5',
-    "cd4Tcells","Bcells","granulocytes","Monocytes","T.cells.CD8")
-contrast.var <- "hiv * cocaine_l6m"
-vidus.full.formula <- paste0("~", paste0(c(contrast.var, common.vars), collapse=" + "))
-design(filtered.vidus.gene.dds) <- as.formula(vidus.full.formula)
-design(filtered.vidus.gene.dds)
-save("filtered.vidus.gene.dds",file="/shared/vidus/vidus_hiv_acquisition_dge_deseq2_cocaine_x_hiv_5celltypes_input.rda")
-
-
-
-
-#### DGE marijuana x hiv ####
-common.vars <- c('female', 'ageatint',
-    "RNA_Quality_Score", 'PC1', 'PC2', 'PC3', 'PC4', 'PC5',
-    "cd4Tcells","Bcells","granulocytes","Monocytes","T.cells.CD8")
-contrast.var <- "hiv * marij_noninj_l6m"
-vidus.full.formula <- paste0("~", paste0(c(contrast.var, common.vars), collapse=" + "))
-design(filtered.vidus.gene.dds) <- as.formula(vidus.full.formula)
-design(filtered.vidus.gene.dds)
-save("filtered.vidus.gene.dds",file="/shared/vidus/vidus_hiv_acquisition_dge_deseq2_marij_x_hiv_5celltypes_input.rda")
-
-
-#### DGE stimulants x hiv ####
-common.vars <- c('female', 'ageatint',
-    "RNA_Quality_Score", 'PC1', 'PC2', 'PC3', 'PC4', 'PC5',
-    "cd4Tcells","Bcells","granulocytes","Monocytes","T.cells.CD8")
-contrast.var <- "hiv * stim_l6m"
-vidus.full.formula <- paste0("~", paste0(c(contrast.var, common.vars), collapse=" + "))
-design(filtered.vidus.gene.dds) <- as.formula(vidus.full.formula)
-design(filtered.vidus.gene.dds)
-save("filtered.vidus.gene.dds",file="/shared/vidus/vidus_hiv_acquisition_dge_deseq2_stim_x_hiv_5celltypes_input.rda")
-
-
-
-#### DGE meth x hiv ####
-common.vars <- c('female', 'ageatint',
-    "RNA_Quality_Score", 'PC1', 'PC2', 'PC3', 'PC4', 'PC5',
-    "cd4Tcells","Bcells","granulocytes","Monocytes","T.cells.CD8")
-contrast.var <- "hiv * meth_l6m"
-vidus.full.formula <- paste0("~", paste0(c(contrast.var, common.vars), collapse=" + "))
-design(filtered.vidus.gene.dds) <- as.formula(vidus.full.formula)
-design(filtered.vidus.gene.dds)
-save("filtered.vidus.gene.dds",file="/shared/vidus/vidus_hiv_acquisition_dge_deseq2_meth_x_hiv_5celltypes_input.rda")
-
-#### DGE heroin x hiv ####
-common.vars <- c('female', 'ageatint',
-    "RNA_Quality_Score", 'PC1', 'PC2', 'PC3', 'PC4', 'PC5',
-    "cd4Tcells","Bcells","granulocytes","Monocytes","T.cells.CD8")
-contrast.var <- "hiv * heroin_l6m"
-vidus.full.formula <- paste0("~", paste0(c(contrast.var, common.vars), collapse=" + "))
-design(filtered.vidus.gene.dds) <- as.formula(vidus.full.formula)
-design(filtered.vidus.gene.dds)
-save("filtered.vidus.gene.dds",file="/shared/vidus/vidus_hiv_acquisition_dge_deseq2_heroin_x_hiv_5celltypes_input.rda")
-
-
-
-
-
-
-
-
-
-
-
-
-#### DTE 5 cell model ####
-common.vars <- c('female', 'ageatint',
-    "RNA_Quality_Score", 'PC1', 'PC2', 'PC3', 'PC4', 'PC5',
-    "cd4Tcells","Bcells","granulocytes","Monocytes","T.cells.CD8")
-contrast.var <- "hiv"
-vidus.full.formula <- paste0("~", paste0(c(contrast.var, common.vars), collapse=" + "))
-design(filtered.vidus.tx.dds) <- as.formula(vidus.full.formula)
-design(filtered.vidus.tx.dds)
-save("filtered.vidus.tx.dds",file="/shared/vidus/vidus_hiv_acquisition_dte_deseq2_5cell-typeAbs_input.rda")
-
-
-#### DTE cocaine x hiv ####
-
-
-
-
-
-######################################################
-# run DESeq2 interactively here:
-library(BiocParallel)
-register(MulticoreParam(workers = 8))
-vidus.fit <- DESeq(filtered.vidus.gene.dds, test = "Wald",
-        fitType = "parametric", sfType = "ratio", betaPrior = F,
-        parallel = T)
-
-# run Deseq2 as a separate instance to perform model fitting
-#docker run --rm --cpus=4 --memory=14g --mount type=bind,src=/shared/vidus/,dst=/shared/vidus -t rticode/deseq2:1.26.0_08a6163 Rscript /shared/vidus/eearley/VIDUS/candidate_gene_study/deseq2.R /shared/vidus/vidus_hiv_acquisition_dge_deseq2_5cell-typeAbs_input.rda /shared/vidus/vidus_hiv_acquisition_dge_deseq2_5cell-typeAbs_model_fit_results.rda 4
-
-######################################################
-#since deseq2 was run within a docker instance that had up to date libraries,
-# this cannot be loaded in the vanilla R v3.4
-# run an interactive docker like this from here on out:
-
-#docker run --rm --memory=6g --cpus=4 --mount type=bind,src=/shared/vidus,dst=/shared/vidus -i -t rticode/deseq2:1.26.0_08a6163
-
-library(DESeq2)
-library(BiocParallel)
-register(MulticoreParam(workers = 8))
-# load the results of the model fit
-load("/shared/vidus/vidus_hiv_acquisition_dte_deseq2_5cell-typeAbs_model_fit_results.rda")
-
-
-resultsNames(vidus.fit)
-
-# Retrieve results and disable outlier filtering
-hiv.results <- DESeq2::results(vidus.fit, name = "hiv_1_vs_0", alpha = 0.05, cooksCutoff = Inf)
-hiv.results <- DESeq2::results(vidus.fit, name = "hiv1.heroin_l6m1", alpha = 0.05, cooksCutoff = Inf)
-
-
-
-# for cocaine/HIV categoricals
-#hiv.results<-results(vidus.fit, contrast=c("group","10","11")) # HIV,cocaine
-#row.names(hiv.results) <- gsub("\\..+$","",row.names(hiv.results))
-
-
-
-pull<-c("ENSG00000183654",
-        "ENSG00000060982",
-        "ENSG00000116128",
-        "ENSG00000010610",
-        "ENSG00000168329",
-        "ENSG00000055163",
-        "ENSG00000133106",
-        "ENSG00000204592",
-        "ENSG00000119917",
-        "ENSG00000185885",
-        "ENSG00000055955",
-        "ENSG00000104783",
-        "ENSG00000153395",
-        "ENSG00000214113",
-        "ENSG00000157601",
-        "ENSG00000116962",
-        "ENSG00000169992",
-        "ENSG00000140853",
-        "ENSG00000138496",
-        "ENSG00000188313",
-        "ENSG00000132669",
-        "ENSG00000020633",
-        "ENSG00000157734",
-        "ENSG00000168394",
-        "ENSG00000204267",
-        "ENSG00000185880",
-        "ENSG00000111667",
-        "ENSG00000103489")
-
-
-
-
-# query results for the candidate gene list
-x<-cbind(row.names(hiv.results)[row.names(hiv.results) %in% pull],hiv.results[row.names(hiv.results) %in% pull,"log2FoldChange"],hiv.results[row.names(hiv.results) %in% pull,"pvalue"])
-
-
-
-
-
-# for VL
-hiv.results <- DESeq2::results(vidus.fit, name = "viral_suppressed_1_vs_0", alpha = 0.05, cooksCutoff = Inf)
-
-
-
-#### apeGLM shrinkage ####
-#apply apeGLM shrinkage to fold changes
-# this takes a long time, consider parallelizing
-hiv.shrunk.results <- hiv.results
-hiv.shrunk.results <- lfcShrink(vidus.fit, res = hiv.shrunk.results, 
-    coef = "hiv_1_vs_0", type = "apeglm", parallel = T)
-# for VL
-hiv.shrunk.results <- lfcShrink(vidus.fit, res = hiv.shrunk.results,
-    coef = "viral_suppressed_1_vs_0", type = "apeglm", parallel = F)
-
-
-
-
-#### save final output ####
-save("hiv.shrunk.results",file="/shared/vidus/hiv.shrunk.dge.hiv_x_heroin_5cells.results.rda")
-
-
-
-
-
-
-
-# plotting
-#now graph the groups to see if there's any evidence of interaction (NLRC5 example)
-d <- plotCounts(vidus.fit, gene="ENSG00000140853.15", intgroup = "group",returnData=TRUE)
-library('ggplot2')
-p<-ggplot(d, aes(x=group, y=count)) +
-  geom_point(position=position_jitter(w=0.1,h=0)) + scale_y_log10()
-pdf(file="vidus_hiv_cocaine_categoricals.pdf")
-print(p)
-dev.off()
-
-
-
-
-
-
-# MA plot
-# compare the models:
-# ~ HIV + sex + age + RIN + geno.PC1-5
-# ~ HIV + sex + age + RIN + geno.PC1-5 + 5-cell-types
-hiv.shrunk.results.5cells <- hiv.shrunk.results
-#original base model results
-load("/shared/vidus/vidus_hiv_acquisition_dge_deseq2_model_fit_data.rda")
-hiv.results.base <- DESeq2::results(vidus.fit, name = "hiv_1_vs_0", alpha = 0.05, cooksCutoff = Inf)
-hiv.shrunk.results.base <- lfcShrink(vidus.fit, res = hiv.results.base,
-    coef = "hiv_1_vs_0", type = "apeglm", parallel = T)
-
-
-#add the column 'svalue' to the results data.frame
-#this will be used to set colors
-#any row with svalue < alpha (default 0.001) will be red, and the palue column ignored
-hiv.shrunk.results.base$svalue <- 1
-hiv.shrunk.results.5cells$svalue <- 1
-row.names(hiv.shrunk.results.base) <- gsub("\\..+$","",row.names(hiv.shrunk.results.base))
-hiv.shrunk.results.base[rownames(hiv.shrunk.results.base) %in% pull,"svalue"] <- 0.001
-row.names(hiv.shrunk.results.5cells) <- gsub("\\..+$","",row.names(hiv.shrunk.results.5cells))
-hiv.shrunk.results.5cells[rownames(hiv.shrunk.results.5cells) %in% pull,"svalue"] <- 0.001
-
-
-
-
-pdf(file="/shared/vidus/MAplot_hiv_dge_base_and_5cellTypes.pdf", width=20, height=8)
-options(repr.plot.width = 16, repr.plot.height = 8)
-par(mfrow=c(1,2))
-
-plotMA(hiv.shrunk.results.base, ylim = c(-1.5,1.5),
-    main = "Base Model", 
-    alpha = 0.01, 
-    cex = 1, cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5,
-    colNonSig = rgb(70, 70, 70, alpha = 30, maxColorValue = 255), 
-    #colSig = rgb(200, 0, 0, alpha = 180, maxColorValue = 255), 
-    colSig = "red",
-    colLine = "gray10",
-    xlab = "Mean of Normalized Gene Expression", ylab = "log2(Fold Change)")
-
-plotMA(hiv.shrunk.results.5cells, ylim = c(-1.5,1.5),
-    main = "Base + Cell-type Adjustment",
-    alpha = 0.01, cex = 1, cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.5,
-    colNonSig = rgb(70, 70, 70, alpha = 30, maxColorValue = 255),
-    #colSig = rgb(200, 0, 0, alpha = 180, maxColorValue = 255),
-    colSig = "red",
-    colLine = "gray10",
-    xlab = "Mean of Normalized Gene Expression", ylab = "log2(Fold Change)")
-
-dev.off()
-
-
-
-
-
-
-
-
-#### violin plots ####
-#may do this locally
-
-
-
-#
-#ihw
-#hiv.shrunk.results.ihw <- ihw(pvalues = hiv.shrunk.results$pvalue, 
-#    covariates = hiv.shrunk.results$baseMean, alpha = 0.05)
-
-#outlier assessment
-#hiv.results.outlier.flagged <- outlier_assess(hiv.results,vidus.fit,"hiv_nostdever")
-
-#significance summary
-#significance_summary(hiv.shrunk.results,hiv.results.outlier.flagged,"hiv_nostdever_celltype_shrunk")
-
-
-# final output
-#save("hiv.shrunk.results",file="/shared/vidus/hiv.shrunk.cell-type.results.rda")
-#export_results(hiv.results.outlier.flagged,hiv.shrunk.results,"hiv_nostdever_celltype")
-
-
-
-
-
-pull<-c("ENSG00000183654",
-        "ENSG00000060982",
-        "ENSG00000116128",
-        "ENSG00000010610",
-        "ENSG00000168329",
-        "ENSG00000055163",
-        "ENSG00000133106",
-        "ENSG00000204592",
-        "ENSG00000119917",
-        "ENSG00000185885",
-        "ENSG00000055955",
-        "ENSG00000104783",
-        "ENSG00000153395",
-        "ENSG00000214113",
-        "ENSG00000157601",
-        "ENSG00000116962",
-        "ENSG00000169992",
-        "ENSG00000140853",
-        "ENSG00000138496",
-        "ENSG00000188313",
-        "ENSG00000132669",
-        "ENSG00000020633",
-        "ENSG00000157734",
-        "ENSG00000168394",
-        "ENSG00000204267",
-        "ENSG00000185880",
-        "ENSG00000111667",
-        "ENSG00000103489")
