@@ -47,7 +47,7 @@ vidus.fit <- DESeq(filtered.vidus.tx.dds, test = "Wald",
         parallel = parallel)
 resultsNames(vidus.fit)
 hiv.results <- DESeq2::results(vidus.fit, name = "hiv_1_vs_0", alpha = 0.05, cooksCutoff = Inf)
-save.image(file="./model.fit.dte.RData")
+save.image(file="./model.fit.dte.2023_11_28.RData")
 
 ##########################
 #### apeGLM shrinkage ####
