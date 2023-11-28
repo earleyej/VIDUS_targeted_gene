@@ -293,19 +293,34 @@ dim(filtered.vidus.tx.dds) #
 filtered.vidus.tx.dds <- estimateSizeFactors(filtered.vidus.tx.dds)
 
 
-
-
-
-
-
-
-# viral load set
-min.fraction <- min(table(vl.pheno$viral_suppressed))/sum(table(vl.pheno$viral_suppressed, useNA = "always"))
+# VL only
+min.fraction <- min(table(pheno.vl$hiv))/sum(table(pheno.vl$hiv, useNA = "always"))
 sample.threshold <- sample.cutoff.calc(min.fraction)
-filtered.vidus.VL.gene.dds <- count.filter(vidus.VL.gene.dds, count.cutoff = 10,
+filtered.vidus.vl.tx.dds <- count.filter(vidus.vl.tx.dds, count.cutoff = 10,
     sample.cutoff = sample.threshold, force.keep = c())
-dim(filtered.vidus.gene.dds) 
-filtered.vidus.VL.gene.dds <- estimateSizeFactors(filtered.vidus.VL.gene.dds)
+dim(filtered.vidus.vl.tx.dds) 
+filtered.vidus.vl.tx.dds <- estimateSizeFactors(filtered.vidus.vl.tx.dds)
+
+
+# no VL only
+min.fraction <- min(table(pheno.novl$hiv))/sum(table(pheno.novl$hiv, useNA = "always"))
+sample.threshold <- sample.cutoff.calc(min.fraction)
+filtered.vidus.novl.tx.dds <- count.filter(vidus.novl.tx.dds, count.cutoff = 10,
+    sample.cutoff = sample.threshold, force.keep = c())
+dim(filtered.vidus.novl.tx.dds) 
+filtered.vidus.novl.tx.dds <- estimateSizeFactors(filtered.vidus.novl.tx.dds)
+
+
+# cocaine only
+
+
+
+
+
+# no cocaine only
+
+
+
 
 
 
