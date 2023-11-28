@@ -240,11 +240,6 @@ vidus.coc.tx.dds <- DESeqDataSetFromTximport(txi = vidus.coc.tx.data,
     design = initial.model, colData = pheno.coc)
 
 
-
-
-
-
-
 # no cocaine only
 pheno.noncoc<-master.pheno[master.pheno$anycoc_l6m == 0,]
 dim(pheno.noncoc)
