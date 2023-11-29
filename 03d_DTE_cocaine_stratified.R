@@ -23,47 +23,74 @@ print("finished loading RData file")
 ######################################
 
 
-common.vars <- c('female', 'ageatint',
+######################################
+#### Differential Gene Expression ####
+######################################
+common.vars <- c('female', 'age.bin',
     "RNA_Quality_Score", 'PC1', 'PC2', 'PC3', 'PC4', 'PC5',
     "cd4Tcells","Bcells","granulocytes","Monocytes","T.cells.CD8")
 contrast.var <- "hiv"
 vidus.full.formula <- paste0("~", paste0(c(contrast.var, common.vars), collapse=" + "))
 
 
-# Cocaine only
-print("Model fitting cocaine subset")
-design(filtered.vidus.coc.gene.dds) <- as.formula(vidus.full.formula)
-design(filtered.vidus.coc.gene.dds)
-# perform the regression
-vidus.fit.coc <- DESeq(filtered.vidus.coc.gene.dds, test = "Wald",
-        fitType = "parametric", sfType = "ratio", betaPrior = F,
-        parallel = parallel)
-resultsNames(vidus.fit.coc)
-hiv.results.coc <- DESeq2::results(vidus.fit.coc, name = "hiv_1_vs_0", alpha = 0.05, cooksCutoff = Inf)
 
-# Non-cocaine only
-print("Model fitting non-cocaine subset")
-design(filtered.vidus.noncoc.gene.dds) <- as.formula(vidus.full.formula)
-design(filtered.vidus.noncoc.gene.dds)
-# perform the regression
-vidus.fit.noncoc <- DESeq(filtered.vidus.noncoc.gene.dds, test = "Wald",
-        fitType = "parametric", sfType = "ratio", betaPrior = F,
-        parallel = parallel)
-resultsNames(vidus.fit.noncoc)
-hiv.results.noncoc <- DESeq2::results(vidus.fit.noncoc, name = "hiv_1_vs_0", alpha = 0.05, cooksCutoff = Inf)
+# VL only
+print("Model fitting")
+design(filtered.vidus.vl.tx.dds) <- as.formula(vidus.full.formula)
+design(filtered.vidus.vl.tx.dds)
+vidus.fit.vl <- DESeq(filtered.vidus.vl.tx.dds, test = "Wald",
+         fitType = "parametric", sfType = "ratio", betaPrior = F,
+         parallel = parallel)
+resultsNames(vidus.fit.vl)
+save(vidus.fit.vl, file="./model.fit.dte.VL.2023_11_28.RData")
+
+
+# no VL only
+print("Model fitting")
+design(filtered.vidus.novl.tx.dds) <- as.formula(vidus.full.formula)
+vidus.fit.novl <- DESeq(filtered.vidus.novl.tx.dds, test = "Wald",
+         fitType = "parametric", sfType = "ratio", betaPrior = F,
+         parallel = parallel)
+resultsNames(vidus.fit.novl)
+save(vidus.fit.novl, file="./model.fit.dte.noVL.2023_11_29.RData")
+
+
+
+
 
 ##########################
 #### apeGLM shrinkage ####
 ##########################
+
+# VL
 #apply apeGLM shrinkage to fold changes
 # this takes a long time, consider parallelizing
-print("apeGLM shrinkage for cocaine subset")
-hiv.shrunk.results <- lfcShrink(vidus.fit.coc, res = hiv.results.coc, 
-    coef = "hiv_1_vs_0", type = "apeglm", parallel = parallel)
+print("apeGLM shrinkage")
+hiv.results.vl <- DESeq2::results(vidus.fit.vl, 
+                               name = "hiv_1_vs_0", 
+                               alpha = 0.05, 
+                               cooksCutoff = Inf)
+hiv.shrunk.results.vl <- lfcShrink(vidus.fit.vl, 
+                                res = hiv.results.vl, 
+                                coef = "hiv_1_vs_0", 
+                                type = "apeglm", 
+                                parallel = parallel)
+# save final output
+save("hiv.shrunk.results.vl",file="./hiv.shrunk.dte.results.vl.2023_11_28.rda")
 
-print("apeGLM shrinkage for non-cocaine subset")
-hiv.shrunk.results <- lfcShrink(vidus.fit.noncoc, res = hiv.results.noncoc, 
-    coef = "hiv_1_vs_0", type = "apeglm", parallel = parallel)
 
-#### save final output ####
-save("hiv.shrunk.results",file="./hiv.shrunk.dge.cocaineONLY.results.rda")
+
+
+# no VL
+print("apeGLM shrinkage")
+hiv.results.novl <- DESeq2::results(vidus.fit.novl, 
+                               name = "hiv_1_vs_0", 
+                               alpha = 0.05, 
+                               cooksCutoff = Inf)
+hiv.shrunk.results.novl <- lfcShrink(vidus.fit.novl, 
+                                res = hiv.results.novl, 
+                                coef = "hiv_1_vs_0", 
+                                type = "apeglm", 
+                                parallel = parallel)
+# save final output
+save("hiv.shrunk.results.novl",file="./hiv.shrunk.dte.results.novl.2023_11_28.rda")
