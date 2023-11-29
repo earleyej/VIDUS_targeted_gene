@@ -4,16 +4,17 @@
 #BiocManager::install("DESeq2")
 library(DESeq2)
 library("BiocParallel")
-register(MulticoreParam(4))
+register(MulticoreParam(2))
 
 parallel=T
 
 
-#docker run -v /rti-01/eearley/vidus:/vidus/ -i -t rtibiocloud/deseq2:1.22.2
+#docker run -v /shared/eearley/vidus:/vidus/ -i -t rtibiocloud/deseq2:1.22.2
 setwd("vidus")
 
 print("loading RData file")
-load("./VIDUS_HIV_DGE_deseq2_cocaineStratified_2023_11_14.RData")
+load("./VIDUS_HIV_DTE_coc_deseq2_2023_11_28.RData")
+load("./VIDUS_HIV_DTE_noncoc_deseq2_2023_11_28.RData")
 print("finished loading RData file")
 
 
@@ -34,25 +35,25 @@ vidus.full.formula <- paste0("~", paste0(c(contrast.var, common.vars), collapse=
 
 
 
-# VL only
+# cocaine only
 print("Model fitting")
-design(filtered.vidus.vl.tx.dds) <- as.formula(vidus.full.formula)
-design(filtered.vidus.vl.tx.dds)
-vidus.fit.vl <- DESeq(filtered.vidus.vl.tx.dds, test = "Wald",
+design(filtered.vidus.coc.tx.dds) <- as.formula(vidus.full.formula)
+design(filtered.vidus.coc.tx.dds)
+vidus.fit.coc <- DESeq(filtered.vidus.coc.tx.dds, test = "Wald",
          fitType = "parametric", sfType = "ratio", betaPrior = F,
          parallel = parallel)
-resultsNames(vidus.fit.vl)
-save(vidus.fit.vl, file="./model.fit.dte.VL.2023_11_28.RData")
+resultsNames(vidus.fit.coc)
+save(vidus.fit.coc, file="./model.fit.dte.coc.2023_11_29.RData")
 
 
-# no VL only
+# no cocaine only
 print("Model fitting")
-design(filtered.vidus.novl.tx.dds) <- as.formula(vidus.full.formula)
-vidus.fit.novl <- DESeq(filtered.vidus.novl.tx.dds, test = "Wald",
+design(filtered.vidus.nococ.tx.dds) <- as.formula(vidus.full.formula)
+vidus.fit.nococ <- DESeq(filtered.vidus.nococ.tx.dds, test = "Wald",
          fitType = "parametric", sfType = "ratio", betaPrior = F,
          parallel = parallel)
-resultsNames(vidus.fit.novl)
-save(vidus.fit.novl, file="./model.fit.dte.noVL.2023_11_29.RData")
+resultsNames(vidus.fit.nococ)
+save(vidus.fit.novl, file="./model.fit.dte.nococ.2023_11_29.RData")
 
 
 
@@ -62,35 +63,34 @@ save(vidus.fit.novl, file="./model.fit.dte.noVL.2023_11_29.RData")
 #### apeGLM shrinkage ####
 ##########################
 
-# VL
+# cocaine only
 #apply apeGLM shrinkage to fold changes
-# this takes a long time, consider parallelizing
 print("apeGLM shrinkage")
-hiv.results.vl <- DESeq2::results(vidus.fit.vl, 
+hiv.results.coc <- DESeq2::results(vidus.fit.coc, 
                                name = "hiv_1_vs_0", 
                                alpha = 0.05, 
                                cooksCutoff = Inf)
-hiv.shrunk.results.vl <- lfcShrink(vidus.fit.vl, 
-                                res = hiv.results.vl, 
+hiv.shrunk.results.coc <- lfcShrink(vidus.fit.coc, 
+                                res = hiv.results.coc, 
                                 coef = "hiv_1_vs_0", 
                                 type = "apeglm", 
                                 parallel = parallel)
 # save final output
-save("hiv.shrunk.results.vl",file="./hiv.shrunk.dte.results.vl.2023_11_28.rda")
+save("hiv.shrunk.results.coc",file="./hiv.shrunk.dte.results.coc.2023_11_29.rda")
 
 
 
 
 # no VL
 print("apeGLM shrinkage")
-hiv.results.novl <- DESeq2::results(vidus.fit.novl, 
+hiv.results.nococ <- DESeq2::results(vidus.fit.nococ, 
                                name = "hiv_1_vs_0", 
                                alpha = 0.05, 
                                cooksCutoff = Inf)
-hiv.shrunk.results.novl <- lfcShrink(vidus.fit.novl, 
-                                res = hiv.results.novl, 
+hiv.shrunk.results.nococ <- lfcShrink(vidus.fit.nococ, 
+                                res = hiv.results.nococ, 
                                 coef = "hiv_1_vs_0", 
                                 type = "apeglm", 
                                 parallel = parallel)
 # save final output
-save("hiv.shrunk.results.novl",file="./hiv.shrunk.dte.results.novl.2023_11_28.rda")
+save("hiv.shrunk.results.novl",file="./hiv.shrunk.dte.results.nococ.2023_11_28.rda")
