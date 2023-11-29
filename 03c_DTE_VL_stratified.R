@@ -47,7 +47,7 @@ vidus.fit.novl <- DESeq(filtered.vidus.novl.tx.dds, test = "Wald",
          fitType = "parametric", sfType = "ratio", betaPrior = F,
          parallel = parallel)
 resultsNames(vidus.fit.novl)
-save(vidus.fit.novl, file="./model.fit.dte.noVL.RData")
+save(vidus.fit.novl, file="./model.fit.dte.noVL.2023_11_29.RData")
 
 
 
