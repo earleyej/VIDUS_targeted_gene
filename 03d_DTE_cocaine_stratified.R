@@ -4,7 +4,7 @@
 #BiocManager::install("DESeq2")
 library(DESeq2)
 library("BiocParallel")
-register(MulticoreParam(2))
+register(MulticoreParam(4))
 
 parallel=T
 
