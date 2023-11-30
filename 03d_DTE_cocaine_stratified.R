@@ -22,11 +22,6 @@ print("finished loading RData file")
 ######################################
 #### Differential Gene Expression ####
 ######################################
-
-
-######################################
-#### Differential Gene Expression ####
-######################################
 common.vars <- c('female', 'age.bin',
     "RNA_Quality_Score", 'PC1', 'PC2', 'PC3', 'PC4', 'PC5',
     "cd4Tcells","Bcells","granulocytes","Monocytes","T.cells.CD8")
