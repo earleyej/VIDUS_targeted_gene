@@ -1,1 +1,7 @@
+#docker run -v /shared/eearley/vidus:/vidus/ -i -t rtibiocloud/dexseq:1.30.0 R
+library(DEXSeq)
+library(DESeq2)
 
+
+setwd("vidus")
+vidus.tx.data <- readRDS("vidus_salmon_dte_tx_data_gencode28.rds")
