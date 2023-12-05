@@ -91,11 +91,30 @@ filtered.count.data <- round(as.matrix(filtered.counts[,-c(1:2)],check.names=F))
 
 
 
-
-dxd <- DEXSeqDataSet(countData=filtered.count.data,
+# Create sample and count data for candidate genes
+samps <- master.pheno[,c("iid","hiv")]
+colnames(samps)<-c("sample_id","condition")
+samps$condition <- factor(samps$condition)
+table(samps$condition)
+gene_names=c("CD44","CX3CR1","EPSTI1","HCP5","IFI44L","IFIT3","IFITM1","MX1","NLRC5","PARP9","PLSCR1","RASSF3","RIN2","RSAD2","TAP1","TAP2","TNF","TNIP3")
+candidate.gene.filtered.counts <- filtered.counts[filtered.counts$gene_id %in% gene_names,]
+dim(candidate.gene.filtered.counts)
+candidate.gene.filtered.count.data <- round(as.matrix(candidate.gene.filtered.counts[,-c(1:2)],check.names=F))
+dim(candidate.gene.filtered.count.data)
+dxd <- DEXSeqDataSet(countData=candidate.gene.filtered.count.data,
                      sampleData=samps,
                      design=~sample + exon + condition:exon,
-                     featureID=filtered.counts$feature_id,
-                     groupID=filtered.counts$gene_id)
+                     featureID=candidate.gene.filtered.counts$feature_id,
+                     groupID=candidate.gene.filtered.counts$gene_id)
+
+
+
+# Run DEXSeq
+system.time({
+  dxd <- estimateSizeFactors(dxd)
+  dxd <- estimateDispersions(dxd, quiet=TRUE, fitType='local')
+  dxd <- testForDEU(dxd, reducedModel=~sample + exon)
+})
+
 
 
