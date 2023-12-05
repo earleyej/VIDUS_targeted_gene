@@ -43,12 +43,12 @@ save(vidus.fit.coc, file="./model.fit.dte.coc.2023_11_29.RData")
 
 # no cocaine only
 print("Model fitting")
-design(filtered.vidus.nococ.tx.dds) <- as.formula(vidus.full.formula)
+design(filtered.vidus.noncoc.tx.dds) <- as.formula(vidus.full.formula)
 vidus.fit.nococ <- DESeq(filtered.vidus.noncoc.tx.dds, test = "Wald",
          fitType = "parametric", sfType = "ratio", betaPrior = F,
          parallel = parallel)
 resultsNames(vidus.fit.nococ)
-save(vidus.fit.novl, file="./model.fit.dte.nococ.2023_11_29.RData")
+save(vidus.fit.nococ, file="./model.fit.dte.nococ.2023_11_29.RData")
 
 
 
@@ -76,7 +76,7 @@ save("hiv.shrunk.results.coc",file="./hiv.shrunk.dte.results.coc.2023_11_29.rda"
 
 
 
-# no VL
+# no cocaine
 print("apeGLM shrinkage")
 hiv.results.nococ <- DESeq2::results(vidus.fit.nococ, 
                                name = "hiv_1_vs_0", 
