@@ -119,5 +119,6 @@ system.time({
   dxd <- testForDEU(dxd, reducedModel=~sample + exon)
 })
 
+save(dxd, file="./hiv_dtu_2023_12_05.RData")
 
 
