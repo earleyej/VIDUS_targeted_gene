@@ -80,11 +80,10 @@ sample.cutoff.calc <- function(min.fraction){
 }
 
 
-
+# filter transcript set
 min.fraction <- min(table(master.pheno$hiv))/sum(table(master.pheno$hiv, useNA = "always"))
 sample.threshold <- sample.cutoff.calc(min.fraction)
 sample.threshold
-# filter here
 filtered.counts <- count.filter(counts, count.cutoff = 10, 
                                 sample.cutoff = sample.threshold, force.keep = c())
 filtered.count.data <- round(as.matrix(filtered.counts[,-c(1:2)],check.names=F))
@@ -101,6 +100,10 @@ candidate.gene.filtered.counts <- filtered.counts[filtered.counts$gene_id %in% g
 dim(candidate.gene.filtered.counts)
 candidate.gene.filtered.count.data <- round(as.matrix(candidate.gene.filtered.counts[,-c(1:2)],check.names=F))
 dim(candidate.gene.filtered.count.data)
+
+# limit to cohort
+candidate.gene.filtered.count.data = candidate.gene.filtered.count.data[,colnames(candidate.gene.filtered.count.data) %in% master.pheno$iid]
+
 dxd <- DEXSeqDataSet(countData=candidate.gene.filtered.count.data,
                      sampleData=samps,
                      design=~sample + exon + condition:exon,
