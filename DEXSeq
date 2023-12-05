@@ -4,4 +4,98 @@ library(DESeq2)
 
 
 setwd("vidus")
+
+
+# load and subset transcript count data
 vidus.tx.data <- readRDS("vidus_salmon_dte_tx_data_gencode28.rds")
+master.pheno = read.table("master.pheno.drugs.5cellTypes.txt", sep="\t", header=T, stringsAsFactors=F)
+vidus.tx.data$abundance <- vidus.tx.data$abundance[,master.pheno$iid]
+vidus.tx.data$counts <- vidus.tx.data$counts[,master.pheno$iid]
+vidus.tx.data$length <- vidus.tx.data$length[,master.pheno$iid]
+
+
+
+
+
+options(stringsAsFactors = F)
+if(! file.exists("./gencode.v28.annotation.gtf.gz")){
+  download.file("ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/gencode.v28.annotation.gtf.gz", 
+                destfile = "./gencode.v28.annotation.gtf.gz")
+}
+gtf <- read.delim("./gencode.v28.annotation.gtf.gz", 
+                  comment.char = "#", sep = "\t", header = F)
+
+# Load or create ID to gene name map
+#if(file.exists("./gencode_v28_tx_id_name_map.rds")){
+  id.name.map = readRDS("./gencode_v28_tx_id_name_map.rds")
+#}else{
+#  print("Creating .rds tx map file")
+#  #gtf = gtf[grep("transcript_id",gtf),]
+#  gtf = gtf %>% filter_all(any_vars(str_detect(., "transcript_id")))
+#  anno.data <- strsplit(gtf[grep(gtf[,9], pattern = "gene_name"),9], split = ";")
+#  id.name.map <- lapply(1:length(anno.data), 
+#                        function(x){
+#                          id <- tail(strsplit(anno.data[[x]][grep(anno.data[[x]],pattern = "transcript_id")],split = " ")[[1]],n = 1)
+#                          name <- tail(strsplit(anno.data[[x]][grep(anno.data[[x]],pattern = "gene_name")],split = " ")[[1]],n = 1)
+#    return(c(id,name))
+#  })
+#  id.name.map <- do.call(rbind, unique(id.name.map))
+#  colnames(id.name.map) <- c("TXID", "GENENAME")
+#  saveRDS(id.name.map, "../Data/gencode_v28_tx_id_name_map.rds")
+#}
+
+all(rownames(vidus.tx.data$counts) %in% id.name.map[,"TRANSCRIPTID"])
+id.name.map <- id.name.map[match(rownames(vidus.tx.data$counts),id.name.map[,"TRANSCRIPTID"]),]
+all(rownames(vidus.tx.data$counts) == id.name.map[,"TRANSCRIPTID"])
+
+counts <- data.frame(gene_id=id.name.map[,"GENENAME"],
+                     feature_id=id.name.map[,"TRANSCRIPTID"],
+                     vidus.tx.data$counts,check.names=F)
+
+
+
+
+
+# count filter function
+count.filter <- function(counts, sample.cutoff = 0.1, count.cutoff = 10, force.keep = c()){
+  count.matrix <- round(as.matrix(counts[,-c(1:2)],check.names=F))
+  force.keep.indices <- which(rownames(count.matrix) %in% force.keep)
+  if(length(force.keep.indices) != length(force.keep)){
+    warning("Not all force kept genes found.")
+  }
+  # Calculate sample fraction that exceeds count cutoff
+  passed.count.cutoff <- rowMeans(count.matrix > count.cutoff, na.rm = F)
+  keep.indices <- which(passed.count.cutoff > sample.cutoff)
+  keep.indices <- unique(c(keep.indices, force.keep.indices))
+  counts[keep.indices,]
+}
+
+sample.cutoff.calc <- function(min.fraction){
+  min.percent <- floor(min.fraction*100)
+  if(min.percent %% 10 >= 5){
+    (floor(min.percent / 10) * 10 + 5) / 100
+  }else{
+    floor(min.fraction * 10) / 10
+  }
+}
+
+
+
+min.fraction <- min(table(master.pheno$hiv))/sum(table(master.pheno$hiv, useNA = "always"))
+sample.threshold <- sample.cutoff.calc(min.fraction)
+sample.threshold
+# filter here
+filtered.counts <- count.filter(counts, count.cutoff = 10, 
+                                sample.cutoff = sample.threshold, force.keep = c())
+filtered.count.data <- round(as.matrix(filtered.counts[,-c(1:2)],check.names=F))
+
+
+
+
+dxd <- DEXSeqDataSet(countData=filtered.count.data,
+                     sampleData=samps,
+                     design=~sample + exon + condition:exon,
+                     featureID=filtered.counts$feature_id,
+                     groupID=filtered.counts$gene_id)
+
+
