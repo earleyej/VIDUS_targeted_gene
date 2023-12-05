@@ -44,7 +44,7 @@ save(vidus.fit.coc, file="./model.fit.dte.coc.2023_11_29.RData")
 # no cocaine only
 print("Model fitting")
 design(filtered.vidus.nococ.tx.dds) <- as.formula(vidus.full.formula)
-vidus.fit.nococ <- DESeq(filtered.vidus.nococ.tx.dds, test = "Wald",
+vidus.fit.nococ <- DESeq(filtered.vidus.noncoc.tx.dds, test = "Wald",
          fitType = "parametric", sfType = "ratio", betaPrior = F,
          parallel = parallel)
 resultsNames(vidus.fit.nococ)
