@@ -9,6 +9,10 @@ setwd("vidus")
 # load and subset transcript count data
 vidus.tx.data <- readRDS("vidus_salmon_dte_tx_data_gencode28.rds")
 master.pheno = read.table("master.pheno.drugs.5cellTypes.txt", sep="\t", header=T, stringsAsFactors=F)
+# ageatint should not be an integer unless we expect expression to scale linearly over time
+# instead, M. Love suggests binning into 3-5 groups and factorizing
+master.pheno$age.bin = cut(master.pheno$ageatint,breaks=5)
+
 vidus.tx.data$abundance <- vidus.tx.data$abundance[,master.pheno$iid]
 vidus.tx.data$counts <- vidus.tx.data$counts[,master.pheno$iid]
 vidus.tx.data$length <- vidus.tx.data$length[,master.pheno$iid]
