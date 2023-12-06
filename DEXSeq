@@ -1,7 +1,8 @@
 #docker run -v /shared/eearley/vidus:/vidus/ -i -t rtibiocloud/dexseq:1.30.0 R
 library(DEXSeq)
 library(DESeq2)
-
+library("BiocParallel")
+register(MulticoreParam(2))
 
 setwd("vidus")
 
@@ -117,22 +118,26 @@ dim(candidate.gene.filtered.count.data)
 # column:exon
 # e.g., ~sample + exon + age.bins:exon + 
 # from DGE/DTE:
-# 'female', 'age.bin',"RNA_Quality_Score", 'PC1', 'PC2', 'PC3', 'PC4', 'PC5',"cd4Tcells","Bcells","granulocytes","Monocytes","T.cells.CD8"
+formulaFullModel = ~ sample_id + exon + female:exon + age.bin:exon + RNA_Quality_Score:exon + PC1:exon + PC2:exon + PC3:exon + PC4:exon + PC5:exon + cd4Tcells:exon + Bcells:exon + granulocytes:exon + Monocytes:exon + T.cells.CD8:exon + condition:exon
+formulaReducedModel = ~ sample_id + exon + female:exon + age.bin:exon + RNA_Quality_Score:exon + PC1:exon + PC2:exon + PC3:exon + PC4:exon + PC5:exon + cd4Tcells:exon + Bcells:exon + granulocytes:exon + Monocytes:exon + T.cells.CD8:exon
 dxd <- DEXSeqDataSet(countData=candidate.gene.filtered.count.data,
                      sampleData=samps,
-                     design= ~sample + exon +  + condition:exon,
+                     design= formulaFullModel,
                      featureID=candidate.gene.filtered.counts$feature_id,
                      groupID=candidate.gene.filtered.counts$gene_id)
+sampleAnnotation(dxd)
 
 
 
 # Run DEXSeq
 system.time({
   dxd <- estimateSizeFactors(dxd)
-  dxd <- estimateDispersions(dxd, quiet=TRUE, fitType='local')
-  dxd <- testForDEU(dxd, reducedModel=~sample + exon)
-})
-
-save(dxd, file="./hiv_dtu_2023_12_05.RData")
-
+  dxd <- estimateDispersions(dxd, formula= formulaFullModel,
+                              quiet=TRUE, fitType='local')
+  dxd <- testForDEU(dxd, 
+                    reducedModel = formulaReducedModel,
+                    fullModel = formulaFullModel)
+}}
+save(dxd, file="./hiv_dtu_2023_12_06.RData")
+save.image("./dex_seq_save_spot_2023_12_06.RData")
 
