@@ -133,6 +133,8 @@ system.time({
 }) # a few seconds
 
 # estimate dispersions
+# This takes a long time when >100 samples
+# Consider skipping this entirely
 system.time({
   dxd <- estimateDispersions(dxd, formula= formulaFullModel,
                               quiet=FALSE, fitType='local')
