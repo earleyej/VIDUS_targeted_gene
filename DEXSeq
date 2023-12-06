@@ -95,7 +95,9 @@ filtered.count.data <- round(as.matrix(filtered.counts[,-c(1:2)],check.names=F))
 
 
 # Create sample and count data for candidate genes
-samps <- master.pheno[,c("iid","hiv")]
+# 'female', 'age.bin',"RNA_Quality_Score", 'PC1', 'PC2', 'PC3', 'PC4', 'PC5',"cd4Tcells","Bcells","granulocytes","Monocytes","T.cells.CD8"
+samps <- master.pheno[,c("iid","hiv","female","age.bin", "RNA_Quality_Score", 'PC1', 'PC2', 'PC3', 'PC4', 'PC5',"cd4Tcells","Bcells","granulocytes","Monocytes","T.cells.CD8")]
+
 colnames(samps)<-c("sample_id","condition")
 samps$condition <- factor(samps$condition)
 table(samps$condition)
@@ -114,6 +116,8 @@ candidate.gene.filtered.count.data = candidate.gene.filtered.count.data[,colname
 # add covariates with this pattern
 # column:exon
 # e.g., ~sample + exon + age.bins:exon + 
+# from DGE/DTE:
+# 'female', 'age.bin',"RNA_Quality_Score", 'PC1', 'PC2', 'PC3', 'PC4', 'PC5',"cd4Tcells","Bcells","granulocytes","Monocytes","T.cells.CD8"
 dxd <- DEXSeqDataSet(countData=candidate.gene.filtered.count.data,
                      sampleData=samps,
                      design= ~sample + exon +  + condition:exon,
