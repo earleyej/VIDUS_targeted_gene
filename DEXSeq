@@ -104,9 +104,15 @@ dim(candidate.gene.filtered.count.data)
 # limit to cohort
 candidate.gene.filtered.count.data = candidate.gene.filtered.count.data[,colnames(candidate.gene.filtered.count.data) %in% master.pheno$iid]
 
+
+# create dxd object
+# design is standard linear model format
+# add covariates with this pattern
+# column:exon
+# e.g., ~sample + exon + age.bins:exon + 
 dxd <- DEXSeqDataSet(countData=candidate.gene.filtered.count.data,
                      sampleData=samps,
-                     design=~sample + exon + condition:exon,
+                     design= ~sample + exon +  + condition:exon,
                      featureID=candidate.gene.filtered.counts$feature_id,
                      groupID=candidate.gene.filtered.counts$gene_id)
 
