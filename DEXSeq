@@ -91,17 +91,14 @@ sample.threshold <- sample.cutoff.calc(min.fraction)
 sample.threshold
 filtered.counts <- count.filter(counts, count.cutoff = 10, 
                                 sample.cutoff = sample.threshold, force.keep = c())
-filtered.count.data <- round(as.matrix(filtered.counts[,-c(1:2)],check.names=F))
-
-
 
 # Create sample and count data for candidate genes
 # 'female', 'age.bin',"RNA_Quality_Score", 'PC1', 'PC2', 'PC3', 'PC4', 'PC5',"cd4Tcells","Bcells","granulocytes","Monocytes","T.cells.CD8"
 samps <- master.pheno[,c("iid","hiv","female","age.bin", "RNA_Quality_Score", 'PC1', 'PC2', 'PC3', 'PC4', 'PC5',"cd4Tcells","Bcells","granulocytes","Monocytes","T.cells.CD8")]
-
 colnames(samps)[c(1,2)]<-c("sample_id","condition")
 samps$condition <- factor(samps$condition)
 table(samps$condition)
+
 gene_names=c("CD44","CX3CR1","EPSTI1","HCP5","IFI44L","IFIT3","IFITM1","MX1","NLRC5","PARP9","PLSCR1","RASSF3","RIN2","RSAD2","TAP1","TAP2","TNF","TNIP3")
 candidate.gene.filtered.counts <- filtered.counts[filtered.counts$gene_id %in% gene_names,]
 dim(candidate.gene.filtered.counts)
@@ -129,15 +126,25 @@ sampleAnnotation(dxd)
 
 
 
-# Run DEXSeq
+# Run DEXSeq ####
+# this normalizes the counts by library size
 system.time({
-  dxd <- estimateSizeFactors(dxd)
+  dxd <- estimateSizeFactors(dxd) 
+}) # a few seconds
+
+# estimate dispersions
+system.time({
   dxd <- estimateDispersions(dxd, formula= formulaFullModel,
-                              quiet=TRUE, fitType='local')
-  dxd <- testForDEU(dxd, 
+                              quiet=FALSE, fitType='local')
+})  
+
+# test for DEU
+system.time({
+dxd <- testForDEU(dxd, 
                     reducedModel = formulaReducedModel,
                     fullModel = formulaFullModel)
-}}
+})
+
 save(dxd, file="./hiv_dtu_2023_12_06.RData")
 save.image("./dex_seq_save_spot_2023_12_06.RData")
 
