@@ -154,24 +154,17 @@ system.time({
 gene_names=c("CD44","CX3CR1","EPSTI1","HCP5","IFI44L","IFIT3","IFITM1","MX1","NLRC5","PARP9","PLSCR1","RASSF3","RIN2","RSAD2","TAP1","TAP2","TNF","TNIP3")
 candidate.gene.filtered.counts <- filtered.counts[filtered.counts$gene_id %in% gene_names,]
 dim(candidate.gene.filtered.counts)
-candidate.gene.filtered.count.data <- round(as.matrix(candidate.gene.filtered.counts[,-c(1:2)],check.names=F))
-dim(candidate.gene.filtered.count.data)
 
 
-# create dxd object
-# design is standard linear model format
-# add covariates with this pattern
-# column:exon
-# e.g., ~sample + exon + age.bins:exon + 
-formulaFullModel = ~ sample_id + exon + female:exon + age.bin:exon + RNA_Quality_Score:exon + PC1:exon + PC2:exon + PC3:exon + PC4:exon + PC5:exon + cd4Tcells:exon + Bcells:exon + granulocytes:exon + Monocytes:exon + T.cells.CD8:exon + condition:exon
-formulaReducedModel = ~ sample_id + exon + female:exon + age.bin:exon + RNA_Quality_Score:exon + PC1:exon + PC2:exon + PC3:exon + PC4:exon + PC5:exon + cd4Tcells:exon + Bcells:exon + granulocytes:exon + Monocytes:exon + T.cells.CD8:exon
-dxd <- DEXSeqDataSet(countData=candidate.gene.filtered.count.data,
+# create dxd object with filtered set
+# But keep the size factors from the full gene set
+sizeFactor = dxd$sizeFactor
+dxd <- DEXSeqDataSet(countData=candidate.gene.filtered.counts[,(3:dim(candidate.gene.filtered.counts)[2])],
                      sampleData=samps,
                      design= formulaFullModel,
                      featureID=candidate.gene.filtered.counts$feature_id,
                      groupID=candidate.gene.filtered.counts$gene_id)
-sampleAnnotation(dxd)
-
+dxd$sizeFactor = sizeFactor
 
 
 # Run DEXSeq ####
