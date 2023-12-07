@@ -1,10 +1,20 @@
+# UPDATE DEC 2023:
+# Use this newer deseq2 image and then install DEXSeq manually. 
+# There have been updates to the estimateDispersions function to make it more efficient
+#docker run -v /shared/eearley/vidus:/vidus/ -i -t genepattern/deseq2:v3 R
+
+# this is an older version. It has a slower version of estimateDispersions
 #docker run -v /shared/eearley/vidus:/vidus/ -i -t rtibiocloud/dexseq:1.30.0 R
+
+
+BiocManager::install("DEXSeq")
 library(DEXSeq)
 library(DESeq2)
-library("BiocParallel")
-register(MulticoreParam(2))
+# do not use parallel option when there are many samples
+#library("BiocParallel")
+#register(MulticoreParam(2))
 
-setwd("vidus")
+setwd("/vidus")
 
 ############################################
 # Load and subset transcript count data ####
