@@ -6,8 +6,9 @@ register(MulticoreParam(2))
 
 setwd("vidus")
 
-
-# load and subset transcript count data
+############################################
+# Load and subset transcript count data ####
+############################################
 vidus.tx.data <- readRDS("vidus_salmon_dte_tx_data_gencode28.rds")
 master.pheno = read.table("master.pheno.drugs.5cellTypes.txt", sep="\t", header=T, stringsAsFactors=F)
 # ageatint should not be an integer unless we expect expression to scale linearly over time
@@ -20,7 +21,9 @@ vidus.tx.data$length <- vidus.tx.data$length[,master.pheno$iid]
 
 
 
-
+###################################
+# Load and process Gencode GTF ####
+###################################
 
 options(stringsAsFactors = F)
 if(! file.exists("./gencode.v28.annotation.gtf.gz")){
@@ -114,7 +117,6 @@ dim(candidate.gene.filtered.count.data)
 # add covariates with this pattern
 # column:exon
 # e.g., ~sample + exon + age.bins:exon + 
-# from DGE/DTE:
 formulaFullModel = ~ sample_id + exon + female:exon + age.bin:exon + RNA_Quality_Score:exon + PC1:exon + PC2:exon + PC3:exon + PC4:exon + PC5:exon + cd4Tcells:exon + Bcells:exon + granulocytes:exon + Monocytes:exon + T.cells.CD8:exon + condition:exon
 formulaReducedModel = ~ sample_id + exon + female:exon + age.bin:exon + RNA_Quality_Score:exon + PC1:exon + PC2:exon + PC3:exon + PC4:exon + PC5:exon + cd4Tcells:exon + Bcells:exon + granulocytes:exon + Monocytes:exon + T.cells.CD8:exon
 dxd <- DEXSeqDataSet(countData=candidate.gene.filtered.count.data,
