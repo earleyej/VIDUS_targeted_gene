@@ -70,14 +70,14 @@ all(rownames(vidus.tx.data$counts) == id.name.map[,"TRANSCRIPTID"])
 ########################################
 #### Collect and filter count data #####
 ########################################
-counts <- data.frame(gene_id=id.name.map[,"GENENAME"],
+counts.df <- data.frame(gene_id=id.name.map[,"GENENAME"],
                      feature_id=id.name.map[,"TRANSCRIPTID"],
                      vidus.tx.data$counts,check.names=F)
 
 # filter to just the analysis cohort (N=588)
 # limit to cohort
-counts = counts[,colnames(counts) %in% master.pheno$iid]
-dim(counts) #203k transcripts
+counts.df = counts.df[,colnames(counts.df)[3:dim(counts.df)[2]] %in% master.pheno$iid]
+dim(counts.df) #203k transcripts
 
 
 
@@ -111,10 +111,12 @@ count.filter <- function(counts, sample.cutoff = 0.1, count.cutoff = 10, force.k
 min.fraction <- min(table(master.pheno$hiv))/sum(table(master.pheno$hiv, useNA = "always"))
 sample.threshold <- sample.cutoff.calc(min.fraction)
 sample.threshold
-filtered.counts <- count.filter(counts, count.cutoff = 10, 
+filtered.counts <- count.filter(counts.df, count.cutoff = 10, 
                                 sample.cutoff = sample.threshold, force.keep = c())
 # ~60k transcripts
 
+# convert to integers
+filtered.counts[,3:dim(filtered.counts)[2]] = round(filtered.counts[,3:dim(filtered.counts)[2]])
 
 ##############################
 #### Create DESeq2 object ####
@@ -127,7 +129,7 @@ table(samps$condition)
 
 formulaFullModel = ~ sample_id + exon + female:exon + age.bin:exon + RNA_Quality_Score:exon + PC1:exon + PC2:exon + PC3:exon + PC4:exon + PC5:exon + cd4Tcells:exon + Bcells:exon + granulocytes:exon + Monocytes:exon + T.cells.CD8:exon + condition:exon
 formulaReducedModel = ~ sample_id + exon + female:exon + age.bin:exon + RNA_Quality_Score:exon + PC1:exon + PC2:exon + PC3:exon + PC4:exon + PC5:exon + cd4Tcells:exon + Bcells:exon + granulocytes:exon + Monocytes:exon + T.cells.CD8:exon
-dxd <- DEXSeqDataSet(countData=filtered.counts,
+dxd <- DEXSeqDataSet(countData=filtered.counts[,c(3:dim(filtered.counts)[2])],
                      sampleData=samps,
                      design= formulaFullModel,
                      featureID=filtered.counts$feature_id,
@@ -139,12 +141,10 @@ dxd <- DEXSeqDataSet(countData=filtered.counts,
 #### Estimate size factors using all genes ####
 ###############################################
 
-
-
 # this normalizes the counts by library size
 system.time({
   dxd <- estimateSizeFactors(dxd) 
-}) # a few seconds
+}) 
 
 
 ###################################
