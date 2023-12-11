@@ -149,8 +149,11 @@ system.time({
 # estimate dispersions
 # This takes a long time when >100 samples
 system.time({
-  dxd <- estimateDispersions(dxd, formula= formulaFullModel,
-                              quiet=FALSE, fitType='local')
+  dxd <- estimateDispersions(dxd, 
+                             formula= formulaFullModel,
+                             quiet=FALSE, 
+                             fitType='local',
+                             BPPARAM = SnowParam(workers = 4))
 })  
 
 
