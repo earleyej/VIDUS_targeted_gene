@@ -10,9 +10,8 @@
 BiocManager::install("DEXSeq")
 library(DEXSeq)
 library(DESeq2)
-# do not use parallel option when there are many samples
-#library("BiocParallel")
-#register(MulticoreParam(2))
+library("BiocParallel")
+register(MulticoreParam(4))
 
 setwd("/vidus")
 
