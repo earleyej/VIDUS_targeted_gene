@@ -111,7 +111,7 @@ min.fraction <- min(table(master.pheno$hiv))/sum(table(master.pheno$hiv, useNA =
 sample.threshold <- sample.cutoff.calc(min.fraction)
 sample.threshold
 filtered.counts <- count.filter(counts.df, count.cutoff = 10, 
-                                sample.cutoff = sample.threshold, force.keep = c())
+                                sample.cutoff = sample.threshold)
 # ~60k transcripts
 
 # convert to integers
@@ -136,14 +136,32 @@ dxd <- DEXSeqDataSet(countData=filtered.counts[,c(3:dim(filtered.counts)[2])],
 
 
 
-###############################################
-#### Estimate size factors using all genes ####
-###############################################
+#############################################################
+#### Estimate size factors & dispersions using all genes ####
+#############################################################
 
 # this normalizes the counts by library size
 system.time({
   dxd <- estimateSizeFactors(dxd) 
 }) 
+
+
+# estimate dispersions
+# This takes a long time when >100 samples
+system.time({
+  dxd <- estimateDispersions(dxd, formula= formulaFullModel,
+                              quiet=FALSE, fitType='local')
+})  
+
+
+
+
+
+##### END - DEC 11, 2023 ####
+
+
+
+
 
 
 ###################################
@@ -168,12 +186,6 @@ dxd$sizeFactor = sizeFactor
 
 # Run DEXSeq ####
 
-# estimate dispersions
-# This takes a long time when >100 samples
-system.time({
-  dxd <- estimateDispersions(dxd, formula= formulaFullModel,
-                              quiet=FALSE, fitType='local')
-})  
 
 # test for DEU
 system.time({
