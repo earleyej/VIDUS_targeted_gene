@@ -1,0 +1,87 @@
+#docker run -v /shared/eearley/vidus:/vidus/ -i -t rtibiocloud/drimseq:1.10.1 R
+
+BiocManager::install("tximport")
+
+#library(data.table)
+#library(GenomicFeatures)
+library(tximport)
+library(DRIMSeq)
+
+
+setwd("/vidus")
+
+###############################################
+#### Load and subset transcript count data ####
+###############################################
+
+master.pheno = read.table("master.pheno.drugs.5cellTypes.txt", sep="\t", header=T, stringsAsFactors=F)
+master.pheno$age.bin = cut(master.pheno$ageatint,breaks=5)
+
+
+vidus.tx.data <- readRDS("vidus_salmon_dte_tx_data_gencode28.rds")
+vidus.tx.data$abundance <- vidus.tx.data$abundance[,master.pheno$iid]
+vidus.tx.data$counts <- vidus.tx.data$counts[,master.pheno$iid]
+vidus.tx.data$length <- vidus.tx.data$length[,master.pheno$iid]
+
+
+
+########################################
+#### Link TranscriptID to Gene Name ####
+########################################
+
+options(stringsAsFactors = F)
+gtf <- read.delim("./gencode.v28.annotation.gtf.gz", 
+                  comment.char = "#", sep = "\t", header = F)
+id.name.map = readRDS("./gencode_v28_tx_id_name_map.rds")
+
+all(rownames(vidus.tx.data$counts) %in% id.name.map[,"TRANSCRIPTID"])
+id.name.map <- id.name.map[match(rownames(vidus.tx.data$counts),id.name.map[,"TRANSCRIPTID"]),]
+all(rownames(vidus.tx.data$counts) == id.name.map[,"TRANSCRIPTID"])
+
+
+
+
+########################################
+#### Collect and filter count data #####
+########################################
+counts.df <- data.frame(gene_id=id.name.map[,"GENENAME"],
+                     feature_id=id.name.map[,"TRANSCRIPTID"],
+                     vidus.tx.data$counts,check.names=F)
+
+sample.cutoff.calc <- function(min.fraction){
+  min.percent <- floor(min.fraction*100)
+  if(min.percent %% 10 >= 5){
+    (floor(min.percent / 10) * 10 + 5) / 100
+  }else{
+    floor(min.fraction * 10) / 10
+  }
+}
+
+# count filter function
+count.filter <- function(counts, sample.cutoff = 0.1, count.cutoff = 10, force.keep = c()){
+  count.matrix <- round(as.matrix(counts[,-c(1:2)],check.names=F))
+  force.keep.indices <- which(rownames(count.matrix) %in% force.keep)
+  if(length(force.keep.indices) != length(force.keep)){
+    warning("Not all force kept genes found.")
+  }
+  # Calculate sample fraction that exceeds count cutoff
+  passed.count.cutoff <- rowMeans(count.matrix > count.cutoff, na.rm = F)
+  keep.indices <- which(passed.count.cutoff > sample.cutoff)
+  keep.indices <- unique(c(keep.indices, force.keep.indices))
+  counts[keep.indices,]
+}
+
+
+
+
+# filter transcript set
+min.fraction <- min(table(master.pheno$hiv))/sum(table(master.pheno$hiv, useNA = "always"))
+sample.threshold <- sample.cutoff.calc(min.fraction)
+sample.threshold
+filtered.counts <- count.filter(counts.df, count.cutoff = 10, 
+                                sample.cutoff = sample.threshold)
+# ~60k transcripts
+
+# convert to integers
+filtered.counts[,3:dim(filtered.counts)[2]] = round(filtered.counts[,3:dim(filtered.counts)[2]])
+
