@@ -12,10 +12,9 @@
 # 3. plotDTU - plotting
 
 
-#### Environment Setup ####
-if(!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-BiocManager::install("satuRn")
+# I made a docker image: 
+# 	docker pull rtibiocloud/saturn:v1.4.0_2e333c2
+#	docker run -v /shared/eearley/vidus:/vidus/ -it rtibiocloud/saturn:v1.4.0_2e333c2
 
 
 library(satuRn)
@@ -30,5 +29,14 @@ library(stageR)
 
 
 #### Load Data ####
+# This object contains the filtered.vidus.tx.dds data
+load("/vidus/VIDUS_HIV_DTE_deseq2_2023_11_28.RData")
+
+# get count data
+tx = assay(filtered.vidus.tx.dds)
+
+# this has 61k rows
+
+
 
 
