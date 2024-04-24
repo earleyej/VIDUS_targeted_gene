@@ -36,6 +36,29 @@ load("/vidus/VIDUS_HIV_DTE_deseq2_2023_11_28.RData")
 tx = assay(filtered.vidus.tx.dds)
 
 # this has 61k rows
+# it has already been filtered for low-count transcripts
+# see code 03a_DTE_prepare_data.R
+
+
+
+# load transcript - gene table that I made in 03a_DTE_prepare_data.R
+txInfo = readRDS("/vidus/gencode_v28_tx_id_name_map.rds")
+# remove version number from transcript ID
+txInfo = data.frame(txInfo)
+txInfo$TRANSCRIPTID = gsub("\\..*$","",txInfo$TRANSCRIPTID)
+rownames(tx) = gsub("\\..*$","",rownames(tx))
+
+
+# Remove genes that only have 1 transcript
+txInfo <- txInfo[txInfo$TRANSCRIPTID %in% rownames(tx), ]
+dim(txInfo) #61,523
+txInfo <- subset(txInfo, 
+                 duplicated(GENENAME) | duplicated(GENENAME, fromLast = TRUE))
+dim(txInfo) #53,406
+tx <- tx[which(
+  rownames(tx) %in% txInfo$TRANSCRIPTID), ]
+dim(tx) #53,320
+
 
 
 
