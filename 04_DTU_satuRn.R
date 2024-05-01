@@ -12,25 +12,26 @@
 # 3. plotDTU - plotting
 
 
-# I made a docker image: 
-# 	docker pull rtibiocloud/saturn:v1.4.0_2e333c2
+# I made a docker image that pre-loads all of these packages: 
+# docker pull rtibiocloud/saturn:v1.4.0_2e333c2
 #	docker run -v /shared/eearley/vidus:/vidus/ -it rtibiocloud/saturn:v1.4.0_2e333c2
 
-
-library(satuRn)
-library(AnnotationHub)
-library(ensembldb)
-library(edgeR)
-library(SummarizedExperiment)
-library(ggplot2)
-library(DEXSeq)
-library(stageR)
+suppressMessages(library(satuRn))
+suppressMessages(library(AnnotationHub))
+suppressMessages(library(ensembldb))
+suppressMessages(library(edgeR))
+suppressMessages(library(SummarizedExperiment))
+suppressMessages(library(ggplot2))
+suppressMessages(library(DEXSeq))
+suppressMessages(library(stageR))
 
 
 
 #### Load Data ####
 # This object contains the filtered.vidus.tx.dds data
 load("/vidus/VIDUS_HIV_DTE_deseq2_2023_11_28.RData")
+pheno = read.table("/vidus/master.pheno.drugs.5cellTypes.txt", sep="\t", header=T, stringsAsFactors=F)
+
 
 # get count data
 tx = assay(filtered.vidus.tx.dds)
@@ -59,7 +60,23 @@ tx <- tx[which(
   rownames(tx) %in% txInfo$TRANSCRIPTID), ]
 dim(tx) #53,320
 
+# make the txInfo and tx colinear
+txInfo <- txInfo[match(rownames(tx), txInfo$TRANSCRIPTID), ]
+
+# Subset the pheno file 
+# Age, sex, RNA quality (RIN), 5 deconvolution-derived cell class proportions, and the top 5 Principal Components
+pheno.analysis = pheno[,c("iid","hiv","female","ageatint","RNA_Quality_Score","cd4Tcells","Bcells","granulocytes","Monocytes","T.cells.CD8",paste0("PC",c(1:5)))]
+# convert age to 5 year bins
 
 
+
+# create design matrix from the pheno file
+# All three main functions of satuRn require a SummarizedExperiment object as an input class
+sumExp <- SummarizedExperiment::SummarizedExperiment(
+    assays = list(counts = tx),
+    colData = pheno.analysis,
+    rowData = txInfo
+)
+metadata(sumExp)$formula <- ~ 0 + as.factor(colData(sumExp)$female + )
 
 
