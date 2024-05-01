@@ -64,19 +64,42 @@ dim(tx) #53,320
 txInfo <- txInfo[match(rownames(tx), txInfo$TRANSCRIPTID), ]
 
 # Subset the pheno file 
-# Age, sex, RNA quality (RIN), 5 deconvolution-derived cell class proportions, and the top 5 Principal Components
-pheno.analysis = pheno[,c("iid","hiv","female","ageatint","RNA_Quality_Score","cd4Tcells","Bcells","granulocytes","Monocytes","T.cells.CD8",paste0("PC",c(1:5)))]
 # convert age to 5 year bins
-
-
+pheno$age.bin = cut(pheno$ageatint,breaks=5)
+# Age, sex, RNA quality (RIN), 5 deconvolution-derived cell class proportions, and the top 5 Principal Components
+pheno.analysis = pheno[,c("iid","hiv","female","age.bin","RNA_Quality_Score","cd4Tcells","Bcells","granulocytes","Monocytes","T.cells.CD8",paste0("PC",c(1:5)))]
 
 # create design matrix from the pheno file
 # All three main functions of satuRn require a SummarizedExperiment object as an input class
+# also rename the columns in txInfo
+colnames(txInfo) = c("isoform_id","gene_id")
 sumExp <- SummarizedExperiment::SummarizedExperiment(
     assays = list(counts = tx),
     colData = pheno.analysis,
     rowData = txInfo
 )
-metadata(sumExp)$formula <- ~ 0 + as.factor(colData(sumExp)$female + )
+metadata(sumExp)$formula <- ~ 0 + hiv + female + as.factor(colData(sumExp)$age.bin) + RNA_Quality_Score + cd4Tcells + Bcells + granulocytes + Monocytes + T.cells.CD8 + PC1 + PC2 + PC3 + PC4 + PC5
+
+
+
+
+# Fit quasi-binomial generalized linear model
+# ~5 min.
+system.time({
+sumExp <- satuRn::fitDTU(
+    object = sumExp,
+    formula = ~ 0 + hiv + female + as.factor(colData(sumExp)$age.bin) + RNA_Quality_Score + cd4Tcells + Bcells + granulocytes + Monocytes + T.cells.CD8 + PC1 + PC2 + PC3 + PC4 + PC5,
+    parallel = FALSE,
+    BPPARAM = BiocParallel::bpparam(),
+    verbose = TRUE
+)
+})
+
+
+
+# set up the contrast matrix
+design <- model.matrix(~ 0 + hiv + female + as.factor(colData(sumExp)$age.bin) + RNA_Quality_Score + cd4Tcells + Bcells + granulocytes + Monocytes + T.cells.CD8 + PC1 + PC2 + PC3 + PC4 + PC5, 
+                       data=pheno.analysis) 
+
 
 
