@@ -63,6 +63,12 @@ dim(tx) #53,320
 # make the txInfo and tx colinear
 txInfo <- txInfo[match(rownames(tx), txInfo$TRANSCRIPTID), ]
 
+# there are still lonely transcripts in the count data. Remove them
+txInfo <- subset(txInfo, duplicated(GENENAME) | duplicated(GENENAME, fromLast = TRUE))
+tx <- tx[which(rownames(tx) %in% txInfo$TRANSCRIPTID), ] # 53,314
+
+
+
 # Subset the pheno file 
 # convert age to 5 year bins
 pheno$age.bin = cut(pheno$ageatint,breaks=5)
@@ -100,6 +106,15 @@ sumExp <- satuRn::fitDTU(
 # set up the contrast matrix
 design <- model.matrix(~ 0 + hiv + female + as.factor(colData(sumExp)$age.bin) + RNA_Quality_Score + cd4Tcells + Bcells + granulocytes + Monocytes + T.cells.CD8 + PC1 + PC2 + PC3 + PC4 + PC5, 
                        data=pheno.analysis) 
+L = contr.treatment(pheno.analysis$hiv)
 
-
-
+# Perform the contrast
+system.time({
+sumExp <- satuRn::testDTU(
+    object = sumExp,
+    contrasts = L,
+    diagplot1 = TRUE,
+    diagplot2 = TRUE,
+    sort = FALSE
+)
+})
